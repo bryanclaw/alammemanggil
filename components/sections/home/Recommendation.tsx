@@ -1,5 +1,5 @@
 import Link from "next/link";
-import DestinationCard from "../ui/DestinationCard";
+import DestinationCard from "@/components/destination/DestinationCard";
 import { destinations } from "@/app/data/destinations";
 
 export default function Recommendation() {

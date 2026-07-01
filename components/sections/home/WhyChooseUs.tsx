@@ -1,4 +1,4 @@
-import StatCard from "../ui/StatCard";
+import StatCard from "../../ui/StatCard";
 
 const stats = [
   {

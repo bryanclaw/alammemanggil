@@ -1,29 +1,23 @@
 export const destinations = [
   {
     id: 1,
-    name: "Gunung Rinjani",
-    location: "Lombok, NTB",
-    image: "/images/destinations/rinjani.jpg",
-    duration: "4D3N",
-    price: "Rp 3.150.000",
+    slug: "gunung-rinjani",
+    title: "Gunung Rinjani",
+    province: "Nusa Tenggara Barat",
+    category: "Mountain",
+    duration: "3D2N",
+    elevation: "3726 mdpl",
     difficulty: "Hard",
-  },
-  {
-    id: 2,
-    name: "Gunung Bromo",
-    location: "Jawa Timur",
-    image: "/images/destinations/bromo.jpg",
-    duration: "2D1N",
-    price: "Rp 850.000",
-    difficulty: "Easy",
-  },
-  {
-    id: 3,
-    name: "Gunung Papandayan",
-    location: "Garut",
-    image: "/images/destinations/papandayan.jpg",
-    duration: "2D1N",
-    price: "Rp 650.000",
-    difficulty: "Easy",
+    price: 3500000,
+    image: "/images/destinations/rinjani.jpg",
+
+    description:
+      "Gunung Rinjani merupakan gunung berapi tertinggi kedua di Indonesia yang menawarkan pemandangan Danau Segara Anak yang menakjubkan.",
+
+    itinerary: [
+      "Hari 1 - Sembalun → Camp",
+      "Hari 2 - Summit → Segara Anak",
+      "Hari 3 - Turun",
+    ],
   },
 ];

@@ -2,28 +2,30 @@ import Image from "next/image";
 import Link from "next/link";
 
 interface Props {
-  name: string;
-  location: string;
+  slug: string;
+  title: string;
+  province: string;
   image: string;
   duration: string;
   difficulty: string;
-  price: string;
+  price: number;
 }
 
 export default function DestinationCard({
-  name,
-  location,
+  slug,
+  title,
+  province,
   image,
   duration,
   difficulty,
   price,
 }: Props) {
   return (
-    <div className="overflow-hidden rounded-2xl bg-white shadow-lg transition duration-300 hover:-translate-y-2 hover:shadow-xl">
+    <div className="overflow-hidden rounded-2xl bg-white shadow-lg transition hover:-translate-y-2 hover:shadow-xl">
       <div className="relative h-60">
         <Image
           src={image}
-          alt={name}
+          alt={title}
           fill
           className="object-cover"
         />
@@ -31,11 +33,9 @@ export default function DestinationCard({
 
       <div className="space-y-4 p-5">
         <div>
-          <p className="text-sm text-gray-500">{location}</p>
+          <p className="text-sm text-gray-500">{province}</p>
 
-          <h3 className="text-xl font-bold">
-            {name}
-          </h3>
+          <h3 className="text-xl font-bold">{title}</h3>
         </div>
 
         <div className="flex justify-between text-sm text-gray-600">
@@ -56,11 +56,11 @@ export default function DestinationCard({
 
         <div className="flex items-center justify-between">
           <p className="text-lg font-bold text-[#7B5538]">
-            {price}
+            Rp {price.toLocaleString("id-ID")}
           </p>
 
           <Link
-            href="/destination"
+            href={`/destination/${slug}`}
             className="rounded-full bg-[#7B5538] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#5f412c]"
           >
             Details
