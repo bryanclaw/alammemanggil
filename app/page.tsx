@@ -1,10 +1,21 @@
-export default function HomePage() {
+import Hero from "@/components/sections/Hero";
+import WhyChooseUs from "@/components/sections/WhyChooseUs";
+import About from "@/components/sections/About";
+import Recommendation from "@/components/sections/Recommendation";
+import Testimonial from "@/components/sections/Testimonial";
+import Expedition from "@/components/sections/Expedition";
+import CTA from "@/components/sections/CTA";
+
+export default function Home() {
   return (
-    <main className="mx-auto max-w-7xl px-6 py-16">
-      <h1 className="text-5xl font-bold">Home</h1>
-      <p className="mt-4 text-gray-600">
-        Welcome to Alam Memanggil.
-      </p>
-    </main>
+    <>
+      <Hero />
+      <WhyChooseUs />
+      <About />
+      <Recommendation />
+      <Testimonial />
+      <Expedition />
+      <CTA />
+    </>
   );
 }
