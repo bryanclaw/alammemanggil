@@ -1,4 +1,5 @@
 import Hero from "@/components/sections/home/Hero";
+import VidioOpening from "@/components/sections/home/vidioopening";
 import WhyChooseUs from "@/components/sections/home/WhyChooseUs";
 import About from "@/components/sections/home/About";
 import Recommendation from "@/components/sections/home/Recommendation";
@@ -10,6 +11,7 @@ export default function Home() {
   return (
     <>
       <Hero />
+      <VidioOpening />
       <WhyChooseUs />
       <About />
       <Recommendation />

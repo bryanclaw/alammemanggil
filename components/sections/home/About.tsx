@@ -1,55 +1,37 @@
-import Image from "next/image";
 import Link from "next/link";
 
 export default function About() {
   return (
-    <section className="bg-[#F6F4F1] py-24">
-      <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 lg:grid-cols-2">
-        {/* Left Image */}
-        <div className="relative h-[500px] overflow-hidden rounded-3xl shadow-xl">
-          <Image
-            src="/images/about.jpg"
-            alt="Outdoor Adventure"
-            fill
-            className="object-cover"
-          />
-        </div>
+    <section
+      className="relative h-[500px] w-full overflow-hidden"
+      style={{
+        backgroundImage: "url('/images/POSTERHOME2.png')", 
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+    
+      <div className="absolute inset-0 bg-black/35" />
 
-        {/* Right Content */}
-        <div>
-          <p className="mb-3 text-sm font-semibold uppercase tracking-[0.3em] text-[#7B5538]">
-            About Us
-          </p>
-
-          <h2 className="mb-6 text-5xl font-bold leading-tight text-gray-900">
-            Alam adalah
-            <br />
-            <span className="text-[#7B5538]">Panggung,</span>
-            <br />
-            Kami adalah
-            <br />
-            <span className="text-[#7B5538]">Pemandunya.</span>
+      <div className="relative mx-auto flex h-full max-w-7xl items-center justify-end px-8 lg:px-16">
+        <div className="max-w-[620px] text-right text-white">
+          <h2 className="ml-18 text-left text-white font-bold text-[68px] leading-[78px] tracking-[-1px]">
+            <div>Alam adalah</div>
+            <div>Panggung, Kamu</div>
+            <div className="whitespace-nowrap">
+            adalah Petualangnya
+            </div>
           </h2>
 
-          <p className="mb-5 text-lg leading-8 text-gray-600">
-            Alam Memanggil menghadirkan pengalaman petualangan yang aman,
-            menyenangkan, dan berkesan. Kami percaya bahwa setiap perjalanan
-            bukan hanya tentang mencapai tujuan, tetapi juga menikmati proses,
-            belajar dari alam, dan menciptakan cerita yang tak terlupakan.
+          <p className="mt-10 text-[18px] font-semibold leading-[1.6] md:text-[22px]">
+            Di sinilah setiap individu menjadi pemeran
+            <br />
+            utama petualang yang menikmati
+            <br />
+            keindahan setiap langkah.
           </p>
 
-          <p className="mb-8 text-lg leading-8 text-gray-600">
-            Bersama pemandu profesional, kami mengajak Anda menjelajahi gunung,
-            hutan, gua, hingga berbagai destinasi alam Indonesia dengan tetap
-            mengutamakan keselamatan dan kelestarian lingkungan.
-          </p>
-
-          <Link
-            href="/information"
-            className="inline-flex rounded-full bg-[#7B5538] px-8 py-4 font-semibold text-white transition hover:bg-[#5d412b]"
-          >
-            Learn More
-          </Link>
+      
         </div>
       </div>
     </section>

@@ -2,12 +2,12 @@
 
 export default function Hero() {
   return (
-    <section className="relative h-[85vh] min-h-[600px] overflow-hidden">
+    <section className="relative h-[70vh] min-h-[100px] overflow-hidden">
       {/* Background */}
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{
-          backgroundImage: "url('/images/hero.jpg')",
+          backgroundImage: "url('/images/HomePoster1.png')",
         }}
       >
         {/* Overlay */}
@@ -17,14 +17,14 @@ export default function Hero() {
       {/* Content */}
       <div className="relative mx-auto flex h-full max-w-7xl items-center px-6">
         <div className="max-w-2xl text-white">
-          <p className="mb-3 text-sm uppercase tracking-[0.3em] text-amber-200">
+          <p className="mb-3 text-sm uppercase tracking-[0.3em] text-white-200 ">
             Explore Indonesia
           </p>
 
           <h1 className="mb-6 text-5xl font-extrabold leading-tight md:text-7xl">
-            Nature Calls,
+            Nature Calls
             <br />
-            We Listen.
+            We Listen!
           </h1>
 
           <p className="mb-8 max-w-xl text-lg text-gray-200">
@@ -35,25 +35,13 @@ export default function Hero() {
           <div className="flex flex-wrap gap-4">
             <Link
               href="/destination"
-              className="rounded-full bg-[#7B5538] px-8 py-4 font-semibold text-white transition hover:bg-[#65442d]"
+              className="rounded-full bg-[#6F4E37] px-8 py-4 font-semibold text-white transition hover:bg-[#65442d] shadow-xl"
             >
               Explore Destinations
             </Link>
 
-            <Link
-              href="/information"
-              className="rounded-full border border-white px-8 py-4 font-semibold text-white transition hover:bg-white hover:text-black"
-            >
-              Learn More
-            </Link>
+            
           </div>
-        </div>
-      </div>
-
-      {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
-        <div className="flex h-10 w-6 justify-center rounded-full border-2 border-white">
-          <div className="mt-2 h-2 w-2 animate-bounce rounded-full bg-white" />
         </div>
       </div>
     </section>

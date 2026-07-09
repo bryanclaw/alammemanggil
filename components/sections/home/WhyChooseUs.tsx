@@ -4,17 +4,17 @@ const stats = [
   {
     value: "1K+",
     label: "Happy Adventurers",
-    image: "/images/stat1.jpg",
+    image: "/images/TESTIMONIICON.jpg",
   },
   {
     value: "4.5★",
     label: "Customer Rating",
-    image: "/images/stat2.jpg",
+    image: "/images/TESTIMONIICON.jpg",
   },
   {
     value: "100%",
     label: "Safety Commitment",
-    image: "/images/stat3.jpg",
+    image: "/images/TESTIMONIICON.jpg",
   },
 ];
 

@@ -19,7 +19,7 @@ export default function TestimonialCard({
       <Quote className="mb-4 text-[#7B5538]" size={36} />
 
       <p className="mb-6 leading-7 text-gray-600">
-        "{review}"
+        <span>{review}</span>
       </p>
 
       <div className="flex items-center gap-4">
