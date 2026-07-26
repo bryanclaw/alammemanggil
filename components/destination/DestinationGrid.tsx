@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link"; // PERBAIKAN: Import Link dari Next.js
 
 const categories = ["All", "Hiking", "Tektok", "Rock Climbing", "Caving"];
 
@@ -18,6 +19,7 @@ const trips = [
     facility: "Transport, Simaksi, Konsumsi,\nGuide & Sertifikat",
     price: "Rp. 2.350.000",
     status: "Tutup",
+    slug: "/", 
   },
   {
     id: 2,
@@ -32,6 +34,7 @@ const trips = [
     facility: "Transport, Simaksi, Konsumsi,\nGuide & Sertifikat",
     price: "Rp. 650.000",
     status: "Pesan",
+    slug: "/OpenTrip/GedeTrip",
   },
   {
     id: 3,
@@ -46,6 +49,7 @@ const trips = [
     facility: "Transport, Simaksi, Konsumsi,\nGuide & Sertifikat",
     price: "Rp. 400.000",
     status: "Pesan",
+    slug: "/OpenTrip/PapandayanTrip", 
   },
   {
     id: 4,
@@ -60,6 +64,7 @@ const trips = [
     facility: "Transport, Simaksi, Konsumsi,\nGuide & Sertifikat",
     price: "Rp. 700.000",
     status: "Tutup",
+    slug: "/open-trip-prau",
   },
   {
     id: 5,
@@ -74,6 +79,7 @@ const trips = [
     facility: "Transport, Simaksi, Konsumsi,\nGuide & Sertifikat",
     price: "Rp. 750.000",
     status: "Tutup",
+    slug: "/open-trip-lawu",
   },
   {
     id: 6,
@@ -88,6 +94,7 @@ const trips = [
     facility: "Transport, Simaksi, Konsumsi,\nGuide & Sertifikat",
     price: "Rp. 800.000",
     status: "Tutup",
+    slug: "/open-trip-merbabu",
   },
 ];
 
@@ -117,11 +124,11 @@ export default function DestinationGrid() {
         {/* HEADER */}
         <div className="grid items-center gap-8 lg:grid-cols-2">
           <div>
-          <div className="inline-flex rounded-full bg-[#7B5538] px-8 py-3 shadow-lg">
-          <h2 className="text-2xl font-extrabold tracking-[0.15em] text-white">
-          OPEN TRIP
-          </h2>
-          </div>
+            <div className="inline-flex rounded-full bg-[#7B5538] px-8 py-3 shadow-lg">
+              <h2 className="text-2xl font-extrabold tracking-[0.15em] text-white">
+                OPEN TRIP
+              </h2>
+            </div>
             <h3 className="mt-5 text-4xl md:text-[44px] font-black tracking-tight leading-[1.1] text-neutral-900">
               Temukan Trip Terbaik <br /> Untuk Perjalanan Anda
             </h3>
@@ -139,7 +146,7 @@ export default function DestinationGrid() {
               <button
                 key={category}
                 onClick={() => handleCategoryChange(category)}
-                className={`rounded-xl px-5 py-2 text-[14px] font-semibold transition-all duration-300 ${
+                className={`rounded-xl px-5 py-2 text-[14px] font-semibold transition-all duration-300 cursor-pointer ${
                   selectedCategory === category
                     ? "bg-white text-neutral-900 shadow-sm scale-[1.02]"
                     : "text-neutral-600 hover:text-neutral-900 hover:bg-white/40"
@@ -249,16 +256,23 @@ export default function DestinationGrid() {
                       <span className="text-[11px] font-medium text-neutral-400">/orang</span>
                     </div>
 
-                    <button
-                      disabled={trip.status !== "Pesan"}
-                      className={`rounded-xl px-5 py-2 text-xs font-bold transition-all duration-300 active:scale-95 ${
-                        trip.status === "Pesan"
-                          ? "bg-[#7B5538] text-white hover:bg-[#5B3E28] shadow-sm shadow-[#7B5538]/20 cursor-pointer"
-                          : "bg-red-500 text-white-600 cursor-not-allowed font-bold"
-                      }`}
-                    >
-                      {trip.status}
-                    </button>
+                    {/* PERBAIKAN UTAMA: Menggunakan Kondisi Validasi Link vs Button agar Sesuai Target Trip */}
+                    {trip.status === "Pesan" ? (
+                      <Link
+                        href={trip.slug}
+                        className="rounded-xl px-5 py-2 text-xs font-bold bg-[#7B5538] text-white hover:bg-[#5B3E28] shadow-sm shadow-[#7B5538]/20 transition-all duration-300 active:scale-95 inline-block text-center cursor-pointer"
+                      >
+                        {trip.status}
+                      </Link>
+                    ) : (
+                      <button
+                        disabled
+                        className="rounded-xl px-5 py-2 text-xs font-bold bg-red-500 text-white cursor-not-allowed"
+                      >
+                        {trip.status}
+                      </button>
+                    )}
+
                   </div>
                 </div>
               </div>

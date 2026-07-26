@@ -18,7 +18,7 @@ export default function DestinationSlider() {
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveIndex((prevIndex) => (prevIndex + 1) % destinations.length);
-    }, 3000);
+    }, 2000);
     return () => clearInterval(interval);
   }, []);
 

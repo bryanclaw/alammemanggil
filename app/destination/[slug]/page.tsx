@@ -1,7 +1,6 @@
 import { destinations } from "@/app/data/destinations";
 import { notFound } from "next/navigation";
 
-import DestinationHero from "@/components/destination/DestinationHero";
 import DestinationSlider from "@/components/destination/DestinationSlider";
 import DestinationGrid from "@/components/destination/DestinationGrid";
 import DestinationTestimonial from "@/components/destination/DestinationTestimonial";

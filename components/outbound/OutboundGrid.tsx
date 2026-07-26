@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link"; // PERBAIKAN: Import Link dari Next.js
 
 const categories = ["All", "Flying Fox", "Rapeling", "Flying Fox & Rapeling"];
 
@@ -17,6 +18,7 @@ const trips = [
     facility: "P3K Standart & Dokumentasi",
     price: "Rp. 2.000.000",
     status: "Pesan",
+    slug: "/Out_Bound/FlyingFoxBound",
   },
   {
     id: 2,
@@ -30,6 +32,7 @@ const trips = [
     facility: "P3K Standart & Dokumentasi",
     price: "Rp. 1.500.000",
     status: "Pesan",
+    slug: "/Out_Bound/RapelingBound",
   },
   {
     id: 3,
@@ -43,10 +46,11 @@ const trips = [
     facility: "P3K Standart & Dokumentasi",
     price: "Rp. 3.000.000",
     status: "Pesan",
+    slug: "/Out_Bound/FlyingFoxRapeling",
   },
 ];
 
-export default function DestinationGrid() {
+export default function OutboundGrid() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [animate, setAnimate] = useState(true);
 
@@ -200,16 +204,22 @@ export default function DestinationGrid() {
                       <span className="text-[11px] font-medium text-neutral-400">/hari</span>
                     </div>
 
-                    <button
-                      disabled={trip.status !== "Pesan"}
-                      className={`rounded-xl px-5 py-2 text-xs font-bold transition-all duration-300 active:scale-95 ${
-                        trip.status === "Pesan"
-                          ? "bg-[#7B5538] text-white hover:bg-[#5B3E28] shadow-sm shadow-[#7B5538]/20 cursor-pointer"
-                          : "bg-red-500 text-white-600 cursor-not-allowed font-bold"
-                      }`}
-                    >
-                      {trip.status}
-                    </button>
+                    {/* PERBAIKAN UTAMA: Menggunakan Kondisi Validasi Link vs Button agar Sesuai Target Trip */}
+                    {trip.status === "Pesan" ? (
+                      <Link
+                        href={trip.slug}
+                        className="rounded-xl px-5 py-2 text-xs font-bold bg-[#7B5538] text-white hover:bg-[#5B3E28] shadow-sm shadow-[#7B5538]/20 transition-all duration-300 active:scale-95 inline-block text-center cursor-pointer"
+                      >
+                        {trip.status}
+                      </Link>
+                    ) : (
+                      <button
+                        disabled
+                        className="rounded-xl px-5 py-2 text-xs font-bold bg-red-500 text-white cursor-not-allowed"
+                      >
+                        {trip.status}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

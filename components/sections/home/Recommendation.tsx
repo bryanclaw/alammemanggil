@@ -6,63 +6,93 @@ import Marquee from "react-fast-marquee";
 const trips = [
   {
     id: 1,
-    image: "/images/gunungrinjani.png",
+    category: "Hiking",
+    image: "/images/RINJANI.jpg",
     route: "Sembalun - Torean",
-    title: "Gunung Rinjani 1726 MDPL",
+    title: "Gunung Rinjani 3726 MDPL",
     location: "Lombok, Nusa Tenggara Barat",
     schedule: "Setiap Weekend",
     duration: "4 Hari 3 Malam",
-    meetup: "Mepo Jakarta Barat",
+    meetup: "Mepo Cawang Uki",
+    facility: "Transport, Simaksi, Konsumsi,\nGuide & Sertifikat",
     price: "Rp. 2.350.000",
     status: "Tutup",
+    slug: "/", 
   },
   {
     id: 2,
+    category: "Hiking",
     image: "/images/gununggede.png",
     route: "Putri",
     title: "Gunung Gede 2958 MDPL",
     location: "Bogor, Jawa Barat",
     schedule: "Setiap Weekend",
     duration: "2 Hari 1 Malam",
-    meetup: "Mepo Jakarta",
+    meetup: "Mepo Cawang Uki",
+    facility: "Transport, Simaksi, Konsumsi,\nGuide & Sertifikat",
     price: "Rp. 650.000",
-    status: "Open",
+    status: "Pesan",
+    slug: "/OpenTrip/GedeTrip",
   },
   {
     id: 3,
-    image: "/images/gunungprau.png",
-    route: "Patak Banteng",
-    title: "Gunung Prau",
-    location: "Wonosobo, Jawa Tengah",
-    schedule: "Weekend",
+    category: "Hiking",
+    image: "/images/gunungpapandayan.png",
+    route: "Cisurupan",
+    title: "Gunung Papandayan 2565 MDPL",
+    location: "Garut, Jawa Barat",
+    schedule: "Setiap Weekend",
     duration: "2 Hari 1 Malam",
-    meetup: "Jakarta",
-    price: "Rp. 550.000",
-    status: "Open",
+    meetup: "Mepo Cawang Uki",
+    facility: "Transport, Simaksi, Konsumsi,\nGuide & Sertifikat",
+    price: "Rp. 400.000",
+    status: "Pesan",
+    slug: "/OpenTrip/PapandayanTrip", 
   },
   {
     id: 4,
-    image: "/images/gununglawu.png",
-    route: "Candhi Cetho",
-    title: "Gunung Lawu",
-    location: "Karanganyar, Jawa Tengah",
-    schedule: "Open Trip",
+    category: "Hiking",
+    image: "/images/gunungprau.png",
+    route: "Patak Banteng",
+    title: "Gunung Prau 2565 MDPL",
+    location: "Wonosobo, Jawa Tengah",
+    schedule: "Setiap Weekend",
     duration: "2 Hari 1 Malam",
-    meetup: "Jakarta",
-    price: "Rp. 1.750.000",
-    status: "Open",
+    meetup: "Mepo Cawang Uki",
+    facility: "Transport, Simaksi, Konsumsi,\nGuide & Sertifikat",
+    price: "Rp. 700.000",
+    status: "Tutup",
+    slug: "/open-trip-prau",
   },
   {
     id: 5,
+    category: "Hiking",
+    image: "/images/gununglawu.png",
+    route: "Candi Cetho",
+    title: "Gunung Lawu 3265 MDPL",
+    location: "Karanganyar, Jawa Tengah",
+    schedule: "Setiap Weekend",
+    duration: "2 Hari 1 Malam",
+    meetup: "Mepo Cawang Uki",
+    facility: "Transport, Simaksi, Konsumsi,\nGuide & Sertifikat",
+    price: "Rp. 750.000",
+    status: "Tutup",
+    slug: "/open-trip-lawu",
+  },
+  {
+    id: 6,
+    category: "Hiking",
     image: "/images/gunungmerbabu.png",
     route: "Suwanting",
-    title: "Gunung Merbabu",
+    title: "Gunung Merbabu 3145 MDPL",
     location: "Magelang, Jawa Tengah",
-    schedule: "Weekend",
+    schedule: "Setiap Weekend",
     duration: "2 Hari 1 Malam",
-    meetup: "Jakarta",
-    price: "Rp. 650.000",
-    status: "Open",
+    meetup: "Mepo Cawang Uki",
+    facility: "Transport, Simaksi, Konsumsi,\nGuide & Sertifikat",
+    price: "Rp. 800.000",
+    status: "Tutup",
+    slug: "/open-trip-merbabu",
   },
 ];
 
@@ -194,16 +224,22 @@ export default function Recommendation() {
                         <span className="text-[9px] font-medium text-neutral-400">/orang</span>
                       </div>
 
-                      <button
-                        disabled={trip.status !== "Open"}
-                        className={`rounded-xl px-4 py-2 text-[11px] font-bold transition-all duration-300 active:scale-95 ${
-                          trip.status === "Open"
-                            ? "bg-[#6F4E37] text-white hover:bg-[#533927] shadow-sm cursor-pointer"
-                            : "bg-red-500 text-white-600 cursor-not-allowed font-bold"
-                        }`}
+                      {/* PERBAIKAN UTAMA: Menggunakan Kondisi Validasi Link vs Button agar Sesuai Target Trip */}
+                    {trip.status === "Pesan" ? (
+                      <Link
+                        href={trip.slug}
+                        className="rounded-xl px-5 py-2 text-xs font-bold bg-[#7B5538] text-white hover:bg-[#5B3E28] shadow-sm shadow-[#7B5538]/20 transition-all duration-300 active:scale-95 inline-block text-center cursor-pointer"
                       >
-                        {trip.status === "Open" ? "Pesan" : "Tutup"}
+                        {trip.status}
+                      </Link>
+                    ) : (
+                      <button
+                        disabled
+                        className="rounded-xl px-5 py-2 text-xs font-bold bg-red-500 text-white cursor-not-allowed"
+                      >
+                        {trip.status}
                       </button>
+                    )}
                     </div>
                   </div>
 
