@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { destinations } from "@/app/data/destinations";
-import DestinationCard from "../destination/DestinationCard";
+//import DestinationCard from "../destination/DestinationCard";
 
 const categories = ["All", "Mountain", "Camping", "Trekking", "Caving"];
 
@@ -36,14 +36,14 @@ export default function DestinationGrid() {
       </div>
 
       {/* Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {filteredDestinations.map((destination) => (
           <DestinationCard
             key={destination.id}
             destination={destination}
           />
         ))}
-      </div>
+      </div> */}
     </>
   );
 }
