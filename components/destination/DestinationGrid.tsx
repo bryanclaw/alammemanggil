@@ -135,7 +135,7 @@ export default function DestinationGrid() {
           </div>
           <p className="max-w-[520px] justify-self-end text-[16px] leading-[1.65] text-neutral-500 font-medium">
             Jelajahi keindahan wisata alam Indonesia dan rencanakan perjalanan alam Anda 
-            dengan informasi perjalanan terbaik bersama Alam Memanggil.
+            dengan informasi perjalanan terbaik bersama Alam Memanggil yang mengarungi destinasi indonesia dari seluruh sabang sampai merauke .
           </p>
         </div>
 
