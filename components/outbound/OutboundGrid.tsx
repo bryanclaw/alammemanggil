@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link"; // PERBAIKAN: Import Link dari Next.js
 
 const categories = ["All", "Flying Fox", "Rapeling", "Flying Fox & Rapeling"];

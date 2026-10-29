@@ -81,7 +81,7 @@ export default function Navbar() {
                     <p className="text-neutral-500 text-[10px] truncate">{session.user.email}</p>
                   </div>
 
-                  {(session.user as any)?.role === "ADMIN" && (
+                  {(session.user as { role?: string })?.role === "ADMIN" && (
                     <Link
                       href="/admin/dashboard"
                       onClick={() => setIsMenuOpen(false)}
