@@ -12,8 +12,9 @@ enum Role {
 }
 
 enum OrderStatus {
-  PENDING
-  PAID
+  WAITING_CONFIRMATION // 1. Menunggu verifikasi bukti transfer oleh Admin
+  PROCESSING           // 2. Pembayaran tervalidasi, diproses & siap konfirmasi WA Admin
+  COMPLETED            // 3. Trip/layanan selesai (diverifikasi Admin)
   CANCELLED
 }
 
@@ -21,10 +22,11 @@ model User {
   id            String    @id @default(cuid())
   name          String?
   email         String    @unique
-  password      String?   // Nullable jika nanti pakai OAuth (Google/Github)
+  password      String?   // Nullable jika pakai OAuth (Google)
   role          Role      @default(USER)
   image         String?
   phone         String?
+  address       String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -32,6 +34,8 @@ model User {
   sessions      Session[]
   orders        Order[]
   cart          Cart?
+  favorites     Favorite[]
+  notifications Notification[]
 }
 
 // Model bawaan NextAuth untuk OAuth/Session
@@ -68,13 +72,20 @@ model Product {
   title       String
   slug        String     @unique
   category    String     // "TRIP", "OUTBOUND", "GEAR"
+  subCategory String?    // Trip: "HIKING", "TEKTOK", "ROCK_CLIMBING", "CAVING" | Outbound: "FLYING_FOX", "RAPELING", "FLYING_FOX_RAPELING"
   price       Float
-  description String
+  description String     @db.Text
   image       String
+  stock       Int        @default(10)
+  // Menyimpan data lengkap Trip (information, itinerary, essential, rules) atau Outbound (information, rules, gallery)
+  metaData    Json?
+  isActive    Boolean    @default(true)
   createdAt   DateTime   @default(now())
-  
+  updatedAt   DateTime   @updatedAt
+
   cartItems   CartItem[]
   orderItems  OrderItem[]
+  favorites   Favorite[]
 }
 
 // Model Keranjang (Cart)
@@ -90,21 +101,28 @@ model CartItem {
   id        String   @id @default(cuid())
   cartId    String
   productId String
-  paxCount  Int      @default(1) // Jumlah orang/item
+  paxCount  Int      @default(1) // Jumlah pax / item
   cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product   Product  @relation(fields: [productId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, productId])
 }
 
-// Model Pesanan (Order)
+// Model Pesanan (Order) - Transfer Manual
 model Order {
-  id          String      @id @default(cuid())
-  userId      String
-  totalAmount Float
-  status      OrderStatus @default(PENDING)
-  createdAt   DateTime    @default(now())
-  
-  user        User        @relation(fields: [userId], references: [id])
-  items       OrderItem[]
+  id           String      @id @default(cuid())
+  userId       String
+  totalAmount  Float
+  status       OrderStatus @default(WAITING_CONFIRMATION)
+  paymentProof String?     @db.Text // Bukti transfer (URL / data URL)
+  senderName   String?              // Nama pengirim transfer
+  bankName     String?              // Bank / e-wallet pengirim
+  notes        String?     @db.Text
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items        OrderItem[]
 }
 
 model OrderItem {
@@ -113,7 +131,59 @@ model OrderItem {
   productId String
   quantity  Int
   price     Float
-  
+
   order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product @relation(fields: [productId], references: [id])
+}
+
+// Model Favorit / Wishlist (Trip, Outbound, Gear jadi satu)
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+}
+
+// Model Notifikasi untuk Customer
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String   @db.Text
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model StoreSetting {
+  id            String   @id @default("default")
+  storeName     String   @default("Alam Memanggil")
+  waAdminNumber String   @default("6281292548524")
+  bankName      String   @default("Bank Central Asia (BCA)")
+  accountNumber String   @default("7445357324")
+  accountHolder String   @default("Dimas Alifio")
+  updatedAt     DateTime @updatedAt
+}
+
+enum DiscountType {
+  PERCENTAGE // Diskon dalam bentuk % (misal: 5 = 5%)
+  FIXED      // Diskon dalam bentuk Rp (misal: 25000 = Rp 25.000)
+}
+
+model DiscountCode {
+  id            String       @id @default(cuid())
+  code          String       @unique
+  discountType  DiscountType
+  discountValue Float
+  minPurchase   Float        @default(0)
+  isActive      Boolean      @default(true)
+  expiresAt     DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 }
