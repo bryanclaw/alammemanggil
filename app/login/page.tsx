@@ -86,7 +86,11 @@ export default function GlassLoginPage() {
     });
 
     if (res?.error) {
-      setError("Email atau kata sandi salah.");
+      if (res.error === "Configuration") {
+        setError("Konfigurasi server belum lengkap (AUTH_SECRET belum disetel).");
+      } else {
+        setError("Email atau kata sandi salah, atau akun belum terdaftar.");
+      }
       setLoading(false);
     } else {
       router.push("/");
