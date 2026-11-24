@@ -7,7 +7,10 @@ import { authConfig } from "./auth.config";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
-  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  secret:
+    process.env.AUTH_SECRET ||
+    process.env.NEXTAUTH_SECRET ||
+    "alam-memanggil-default-local-secret-32-chars-long",
   adapter: PrismaAdapter(prisma),
   providers: [
     ...authConfig.providers.filter(
@@ -30,6 +33,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           const email = rawEmail.trim().toLowerCase();
           if (!email || !rawPassword) return null;
+
+          const hasDb =
+            process.env.DATABASE_URL ||
+            process.env.POSTGRES_PRISMA_URL ||
+            process.env.DIRECT_URL ||
+            process.env.POSTGRES_URL;
+
+          if (!hasDb) {
+            console.error(
+              "[AUTH] Gagal login: DATABASE_URL belum diatur di file .env atau Vercel Environment Variables."
+            );
+            return null;
+          }
 
           const user = await prisma.user.findUnique({
             where: { email },
