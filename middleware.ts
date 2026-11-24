@@ -8,17 +8,25 @@ export default auth((req) => {
   const isLoggedIn = !!req.auth;
   const { pathname } = req.nextUrl;
 
-  const isPublicRoute =
+  const isAuthRoute =
     pathname.startsWith("/login") ||
     pathname.startsWith("/daftar") ||
-    pathname.startsWith("/lupa-sandi") ||
-    pathname.startsWith("/api/auth");
+    pathname.startsWith("/lupa-sandi");
 
-  if (!isLoggedIn && !isPublicRoute) {
-    return NextResponse.redirect(new URL("/login", req.nextUrl));
+  const isProtectedRoute =
+    pathname.startsWith("/profile") ||
+    pathname.startsWith("/cart") ||
+    pathname.startsWith("/checkout") ||
+    pathname.startsWith("/admin");
+
+  if (!isLoggedIn && isProtectedRoute) {
+    const callbackUrl = encodeURIComponent(pathname);
+    return NextResponse.redirect(
+      new URL(`/login?callbackUrl=${callbackUrl}`, req.nextUrl)
+    );
   }
 
-  if (isLoggedIn && (pathname.startsWith("/login") || pathname.startsWith("/daftar"))) {
+  if (isLoggedIn && isAuthRoute) {
     return NextResponse.redirect(new URL("/", req.nextUrl));
   }
 

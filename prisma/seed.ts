@@ -1,9 +1,25 @@
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 async function main() {
+  // 1. Seed Akun Default Admin
+  const adminPassword = await bcrypt.hash("admin123", 10);
+  const adminUser = await prisma.user.upsert({
+    where: { email: "admin@alammemanggil.com" },
+    update: {},
+    create: {
+      name: "Admin Alam Memanggil",
+      email: "admin@alammemanggil.com",
+      password: adminPassword,
+      role: "ADMIN",
+    },
+  });
+  console.log(`Akun Admin siap: ${adminUser.email} (password: admin123)`);
+
+  // 2. Seed Katalog Produk
   const products = [
     {
       title: "Open Trip Gunung Gede Pangrango 2D1N",
