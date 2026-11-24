@@ -31,6 +31,20 @@ interface OutboundBookingMeta {
   label: string;
 }
 
+export interface RentalBookingMeta {
+  productId: string;
+  rentalStartDate: string;
+  rentalEndDate: string;
+  pickupDate: string;
+  returnDate: string;
+  baseNights: number;
+  extraChargeNights: number;
+  totalBilledNights: number;
+  datesToLock: string[];
+  scheduleLabel: string;
+  qty?: number;
+}
+
 interface ProductMetaRules {
   rulesItems?: RuleEntry[];
   rulesText?: string;
@@ -39,6 +53,7 @@ interface ProductMetaRules {
 interface CartItemType {
   id: string;
   paxCount: number;
+  selectedSchedule?: string | null;
   product: {
     id: string;
     title: string;
@@ -144,12 +159,16 @@ export default function CheckoutPage() {
   const [outboundDaysByKey, setOutboundDaysByKey] = useState<
     Record<string, number>
   >({});
+  const [rentalBookingsByKey, setRentalBookingsByKey] = useState<
+    Record<string, RentalBookingMeta>
+  >({});
   const [scheduleByKey, setScheduleByKey] = useState<Record<string, string>>(
     {}
   );
 
   const syncLocalBookingMeta = (cartItems: CartItemType[]) => {
     let savedOutbound: Record<string, OutboundBookingMeta> = {};
+    let savedRental: Record<string, RentalBookingMeta> = {};
     let savedSchedules: Record<string, { dateLabel?: string } | string> = {};
 
     try {
@@ -160,6 +179,13 @@ export default function CheckoutPage() {
     }
 
     try {
+      const rawRent = localStorage.getItem("alam_memanggil_rental_bookings");
+      savedRental = rawRent ? JSON.parse(rawRent) : {};
+    } catch {
+      savedRental = {};
+    }
+
+    try {
       const rawSched = localStorage.getItem("alam_memanggil_selected_schedules");
       savedSchedules = rawSched ? JSON.parse(rawSched) : {};
     } catch {
@@ -167,6 +193,7 @@ export default function CheckoutPage() {
     }
 
     const nextDays: Record<string, number> = {};
+    const nextRental: Record<string, RentalBookingMeta> = {};
     const nextSched: Record<string, string> = {};
 
     for (const item of cartItems) {
@@ -184,8 +211,28 @@ export default function CheckoutPage() {
             ? sc
             : sc?.dateLabel || ob?.label || `${daysVal} Hari`;
         nextSched[key] = label;
+      } else if (item.product.category === "RENTAL") {
+        const rent = savedRental[key] || savedRental[item.product.id];
+        if (rent) {
+          nextRental[key] = rent;
+          nextRental[item.product.id] = rent;
+          nextSched[key] = rent.scheduleLabel;
+        } else {
+          const sc =
+            item.selectedSchedule ||
+            savedSchedules[key] ||
+            savedSchedules[item.product.id];
+          const label =
+            typeof sc === "string"
+              ? sc
+              : sc?.dateLabel || `Rental ${Math.max(1, item.paxCount)} Malam`;
+          nextSched[key] = label;
+        }
       } else {
-        const sc = savedSchedules[key] || savedSchedules[item.product.id];
+        const sc =
+          item.selectedSchedule ||
+          savedSchedules[key] ||
+          savedSchedules[item.product.id];
         const label = typeof sc === "string" ? sc : sc?.dateLabel || "";
         if (label) {
           nextSched[key] = label;
@@ -194,6 +241,7 @@ export default function CheckoutPage() {
     }
 
     setOutboundDaysByKey(nextDays);
+    setRentalBookingsByKey(nextRental);
     setScheduleByKey(nextSched);
   };
 
@@ -230,7 +278,7 @@ export default function CheckoutPage() {
             loadedSetting = { ...DEFAULT_SETTING, ...pubSetData.setting };
           }
         } catch {
-          // abaikan jika endpoint tidak ada
+          // abaikan
         }
 
         if (!loadedSetting) {
@@ -295,9 +343,16 @@ export default function CheckoutPage() {
           outboundDaysByKey[key] || outboundDaysByKey[item.product.id] || 1
         );
       }
+      if (item.product.category === "RENTAL") {
+        const rent =
+          rentalBookingsByKey[key] || rentalBookingsByKey[item.product.id];
+        const nights = Math.max(1, Number(rent?.totalBilledNights || 1));
+        const unitQty = Math.max(1, Number(rent?.qty || item.paxCount || 1));
+        return nights * unitQty;
+      }
       return Math.max(1, item.paxCount);
     },
-    [outboundDaysByKey]
+    [outboundDaysByKey, rentalBookingsByKey]
   );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -449,7 +504,7 @@ export default function CheckoutPage() {
       return;
     }
 
-    let selectedSchedules: Record<string, string> = {};
+    let selectedSchedules: Record<string, string> = { ...scheduleByKey };
     try {
       const raw = localStorage.getItem("alam_memanggil_selected_schedules");
       if (raw) {
@@ -466,7 +521,7 @@ export default function CheckoutPage() {
         }
       }
     } catch {
-      selectedSchedules = {};
+      // abaikan
     }
 
     let outboundBookings: Record<string, OutboundBookingMeta> = {};
@@ -479,6 +534,25 @@ export default function CheckoutPage() {
       outboundBookings = {};
     }
 
+    const rentalBookingsList: RentalBookingMeta[] = [];
+    for (const item of items) {
+      if (item.product.category === "RENTAL") {
+        const key = item.product.slug || item.product.id;
+        const found = rentalBookingsByKey[key] || rentalBookingsByKey[item.product.id];
+        if (found) {
+          rentalBookingsList.push({
+            ...found,
+            productId: item.product.id,
+          });
+        }
+      }
+    }
+
+    const rentalLines = rentalBookingsList.map(
+      (rb) =>
+        `Rental ${rb.productId}: ${rb.scheduleLabel} | Batas Kembali: ${rb.returnDate} | Tanggal Sewa Terbooking: ${rb.datesToLock.join(", ")}`
+    );
+
     const agreedAt = new Date().toLocaleString("id-ID");
     const rulesSummary = items
       .map((it) => {
@@ -489,6 +563,7 @@ export default function CheckoutPage() {
 
     const combinedNotes = [
       notes.trim(),
+      ...rentalLines,
       `Persetujuan Rules: DISETUJUI (${rulesSummary})`,
     ]
       .filter(Boolean)
@@ -506,6 +581,7 @@ export default function CheckoutPage() {
           notes: combinedNotes,
           selectedSchedules,
           outboundBookings,
+          rentalBookings: rentalBookingsList,
           rulesAgreed: true,
           discountCode: appliedDiscount ? appliedDiscount.code : null,
         }),
@@ -522,6 +598,7 @@ export default function CheckoutPage() {
       try {
         localStorage.removeItem("alam_memanggil_selected_schedules");
         localStorage.removeItem("alam_memanggil_outbound_bookings");
+        localStorage.removeItem("alam_memanggil_rental_bookings");
       } catch {
         // abaikan error storage
       }
@@ -581,7 +658,6 @@ export default function CheckoutPage() {
           Pastikan Informasi Profil sudah lengkap, baca & setujui seluruh rules paket, lalu unggah bukti transfer.
         </p>
 
-        {/* GATE WAJIB LENGKAPI INFORMASI PROFIL SEBELUM CHECKOUT */}
         <div
           className={`rounded-3xl border p-5 mb-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
             isProfileComplete
@@ -643,7 +719,6 @@ export default function CheckoutPage() {
             onSubmit={handleCheckoutSubmit}
             className="lg:col-span-2 bg-white rounded-3xl border border-neutral-300 p-6 shadow-sm space-y-5"
           >
-            {/* BLOK PERSETUJUAN RULES SETIAP PAKET DI KERANJANG */}
             <div className="bg-amber-50/70 border border-amber-300 rounded-2xl p-4 space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2 text-xs font-black text-neutral-950 uppercase tracking-wider">
@@ -852,8 +927,20 @@ export default function CheckoutPage() {
               {items.map((item) => {
                 const key = item.product.slug || item.product.id;
                 const isOutbound = item.product.category === "OUTBOUND";
+                const isRental = item.product.category === "RENTAL";
+                const rentMeta =
+                  rentalBookingsByKey[key] || rentalBookingsByKey[item.product.id];
                 const multiplier = getItemMultiplier(item);
                 const sched = scheduleByKey[key];
+
+                const unitDesc = isOutbound
+                  ? `${multiplier} Hari × ${formatRupiah(item.product.price)}`
+                  : isRental
+                  ? `${Math.max(1, rentMeta?.totalBilledNights || 1)} Malam × ${Math.max(
+                      1,
+                      rentMeta?.qty || item.paxCount || 1
+                    )} Unit × ${formatRupiah(item.product.price)}`
+                  : `${multiplier} Pax × ${formatRupiah(item.product.price)}`;
 
                 return (
                   <div
@@ -865,8 +952,7 @@ export default function CheckoutPage() {
                         {item.product.title}
                       </p>
                       <p className="text-neutral-800 font-semibold text-[11px]">
-                        {multiplier} {isOutbound ? "Hari" : "Pax"} ×{" "}
-                        {formatRupiah(item.product.price)}
+                        {unitDesc}
                       </p>
                       {sched && (
                         <p className="inline-flex items-center gap-1 text-[11px] font-bold text-neutral-950 mt-0.5">
@@ -883,7 +969,6 @@ export default function CheckoutPage() {
               })}
             </div>
 
-            {/* INPUT KODE DISKON SAAT CHECKOUT */}
             <div className="space-y-2 border-b border-neutral-200 pb-4">
               <label className="flex items-center gap-1.5 text-xs font-black text-neutral-950">
                 <Tag className="w-3.5 h-3.5 text-[#6F4E37]" />
@@ -978,7 +1063,7 @@ export default function CheckoutPage() {
             <div className="flex items-start gap-2 bg-neutral-100 p-3 rounded-2xl text-xs font-medium text-neutral-900">
               <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
               <span>
-                Informasi profil, kode diskon, dan persetujuan rules tercatat pada pesanan sebelum status masuk ke{" "}
+                Tanggal sewa yang dipilih akan otomatis terbooking saat checkout diproses, lalu masuk ke status{" "}
                 <strong>Menunggu Konfirmasi</strong>.
               </span>
             </div>

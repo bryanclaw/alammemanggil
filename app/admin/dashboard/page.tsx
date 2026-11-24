@@ -8,6 +8,7 @@ import {
   Plus,
   Pencil,
   Trash2,
+  Check,
   CheckCircle2,
   Clock,
   Loader2,
@@ -27,6 +28,8 @@ import {
   MessageCircle,
   CheckCheck,
   Tag,
+  AlertTriangle,
+  Send,
 } from "lucide-react";
 
 const TRIP_SUBCATEGORIES = ["ALL", "HIKING", "TEKTOK", "ROCK_CLIMBING", "CAVING"];
@@ -188,6 +191,7 @@ interface AdminOrder {
   notes?: string | null;
   createdAt: string;
   user: {
+    id?: string;
     name: string | null;
     email: string;
     phone: string | null;
@@ -237,6 +241,112 @@ type AdminOrderFilterTab =
   | "COMPLETED"
   | "CANCELLED"
   | "REVIEWS";
+
+const DEFAULT_TRIP_INCLUDE_TEMPLATE: string[] = [
+  "Transportasi PP dari meeting point",
+  "Basecamp Tempat Singgah",
+  "Porter Kelompok",
+  "Pickup BC",
+  "Tour Crew Berpengalaman",
+  "Simaksi / Tiket Masuk",
+  "Tenda Kapasitas 4 Orang",
+  "Alat Masak & Makan",
+  "Tenda Toilet",
+  "Makan Sebelum Pendakian",
+  "Makan Selama Pendakian",
+  "Minuman Hangat",
+  "Sop Jelly & Buah",
+  "Dokumentasi",
+  "P3K Kelompok",
+  "Sertifikat Apresiasi Digital",
+];
+
+const DEFAULT_TRIP_ITINERARY_TEMPLATE: ItineraryEntry[] = [
+  {
+    day: 1,
+    startTime: "20.00",
+    endTime: "20.30",
+    activity: "Berkumpul di Meeting Point & Registrasi Peserta",
+  },
+  {
+    day: 1,
+    startTime: "20.30",
+    endTime: "02.00",
+    activity: "Perjalanan Menuju Basecamp Pendakian",
+  },
+  {
+    day: 2,
+    startTime: "02.00",
+    endTime: "06.00",
+    activity: "Istirahat di Basecamp, Sarapan & Packing Ulang",
+  },
+  {
+    day: 2,
+    startTime: "06.00",
+    endTime: "07.00",
+    activity: "Briefing, Pemanasan & Doa Bersama sebelum Pendakian",
+  },
+  {
+    day: 2,
+    startTime: "07.00",
+    endTime: "13.00",
+    activity: "Pendakian Menuju Area Camp",
+  },
+  {
+    day: 2,
+    startTime: "13.00",
+    endTime: "18.00",
+    activity: "Mendirikan Tenda, Makan Siang & Istirahat Bebas",
+  },
+  {
+    day: 2,
+    startTime: "18.00",
+    endTime: "21.00",
+    activity: "Makan Malam, Briefing Summit & Istirahat",
+  },
+  {
+    day: 3,
+    startTime: "02.30",
+    endTime: "03.30",
+    activity: "Bangun Pagi, Minuman Hangat & Persiapan Summit Attack",
+  },
+  {
+    day: 3,
+    startTime: "03.30",
+    endTime: "06.00",
+    activity: "Summit Attack Menuju Puncak Gunung",
+  },
+  {
+    day: 3,
+    startTime: "06.00",
+    endTime: "07.30",
+    activity: "Menikmati Sunrise & Sesi Dokumentasi di Puncak",
+  },
+  {
+    day: 3,
+    startTime: "07.30",
+    endTime: "10.30",
+    activity: "Turun Kembali ke Area Camp, Sarapan & Bongkar Tenda",
+  },
+  {
+    day: 3,
+    startTime: "10.30",
+    endTime: "15.00",
+    activity: "Perjalanan Turun Menuju Basecamp",
+  },
+  {
+    day: 3,
+    startTime: "15.00",
+    endTime: "17.00",
+    activity: "Bersih-bersih, Makan & Persiapan Kembali ke Meeting Point",
+  },
+  {
+    day: 3,
+    startTime: "17.00",
+    endTime: "23.00",
+    activity: "Perjalanan Pulang ke Meeting Point & Trip Selesai",
+  },
+];
 
 const DEFAULT_ESSENTIAL_TEMPLATE: EssentialEntry[] = [
   { no: 1, itemName: "Tas Carrier", quantity: "1", note: "Ukuran 45 - 60 L" },
@@ -482,21 +592,29 @@ const DEFAULT_RENTAL_RULES_TEMPLATE: RuleEntry[] = [
   },
   {
     no: 2,
-    rule: "Penyewa wajib menyertakan identitas valid (KTP/SIM) serta mengecek kondisi fisik alat saat diterima bersama tim Alam Memanggil.",
+    rule: "Pengambilan alat maksimal H-1 dan pengembalian maksimal H+1 dari jadwal sewa (atau tepat hari H / tanggal sewa). Pengambilan H-2 seterusnya atau pengembalian H+2 seterusnya akan dikenakan tarif perhitungan tambahan.",
   },
   {
     no: 3,
-    rule: "Kerusakan, robek, patah, atau kehilangan alat selama masa sewa menjadi tanggung jawab penyewa sesuai tingkat kerusakan atau biaya penggantian.",
+    rule: "Penyewa wajib menyertakan identitas valid (KTP/SIM) serta mengecek kondisi fisik alat saat diterima bersama tim Alam Memanggil.",
   },
   {
     no: 4,
-    rule: "Keterlambatan pengembalian alat dikenakan denda sesuai ketentuan sewa yang berlaku.",
+    rule: "Kerusakan, robek, patah, atau kehilangan alat selama masa sewa menjadi tanggung jawab penyewa sesuai tingkat kerusakan atau biaya penggantian.",
   },
   {
     no: 5,
-    rule: "Dilarang mengubah struktur, memodifikasi, atau menyewakan kembali alat yang sedang dalam masa rental tanpa izin tertulis dari Alam Memanggil.",
+    rule: "Keterlambatan pengembalian melewati batas waktu dikenakan denda sesuai ketentuan sewa yang berlaku.",
   },
 ];
+
+function cloneTripIncludeTemplate(): string[] {
+  return [...DEFAULT_TRIP_INCLUDE_TEMPLATE];
+}
+
+function cloneTripItineraryTemplate(): ItineraryEntry[] {
+  return DEFAULT_TRIP_ITINERARY_TEMPLATE.map((item) => ({ ...item }));
+}
 
 function cloneEssentialTemplate(): EssentialEntry[] {
   return DEFAULT_ESSENTIAL_TEMPLATE.map((item) => ({ ...item }));
@@ -604,6 +722,40 @@ function extractScheduleFromNotes(notes?: string | null): string | null {
   return match?.[1]?.trim() || null;
 }
 
+function extractReturnDateFromOrder(order: AdminOrder): string | null {
+  const combined = [
+    order.notes || "",
+    ...order.items.map((it) => it.selectedSchedule || ""),
+  ].join(" ");
+  const retMatch = combined.match(/Kembali\s*:\s*(\d{4}-\d{2}-\d{2})/i);
+  if (retMatch?.[1]) return retMatch[1];
+
+  const batasMatch = combined.match(/Batas Kembali\s*:\s*(\d{4}-\d{2}-\d{2})/i);
+  if (batasMatch?.[1]) return batasMatch[1];
+
+  const dates = combined.match(/\d{4}-\d{2}-\d{2}/g);
+  return dates && dates.length > 0 ? dates[dates.length - 1] : null;
+}
+
+function getTodayIsoStr(): string {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function isOrderRentalOverdue(order: AdminOrder): boolean {
+  const hasRental = order.items.some(
+    (it) => String(it.product?.category || "").toUpperCase() === "RENTAL"
+  );
+  if (!hasRental) return false;
+  if (order.status === "CANCELLED") return false;
+  const returnDate = extractReturnDateFromOrder(order);
+  if (!returnDate) return false;
+  return returnDate < getTodayIsoStr();
+}
+
 function isCancelledByCustomer(order: AdminOrder): boolean {
   return (
     order.status === "CANCELLED" &&
@@ -652,6 +804,19 @@ function buildCustomerWaContactUrl(
 
   const code = `#${order.id.slice(-6).toUpperCase()}`;
   const customerName = order.user?.name || order.user?.email || "Pelanggan";
+  const overdue = isOrderRentalOverdue(order);
+  const returnDate = extractReturnDateFromOrder(order);
+
+  if (overdue) {
+    const lines = [
+      `Halo Kak *${customerName}*, kami dari tim *Alam Memanggil* ingin mengingatkan pengembalian alat rental pada pesanan *${code}*.`,
+      "",
+      `Tanggal Kembali Terjadwal: *${returnDate || "-"}* (sudah melewati jadwal).`,
+      "Mohon segera mengonfirmasi pengembalian alat atau menghubungi admin terkait proses pengembalian dan ketentuan keterlambatannya ya.",
+    ];
+    return `https://wa.me/${waNumber}?text=${encodeURIComponent(lines.join("\n"))}`;
+  }
+
   const isCompleted =
     order.status === "COMPLETED" || order.status === "PROCESSING";
   const isCancelled = order.status === "CANCELLED";
@@ -670,23 +835,6 @@ function buildCustomerWaContactUrl(
     `Status Pesanan: *${statusText}*`,
     `Total Pembayaran: *${formatRupiahFn(order.totalAmount)}*`,
   ];
-
-  if (order.status === "WAITING_CONFIRMATION") {
-    lines.push(
-      "",
-      "Kami sedang melakukan konfirmasi/verifikasi pesanan Kakak. Jika ada hal yang perlu dikonfirmasi, silakan balas pesan ini ya."
-    );
-  } else if (isCancelled && !isCancelledByCustomer(order)) {
-    lines.push(
-      "",
-      "Mohon maaf, pesanan Kakak ditolak/belum sesuai. Silakan hubungi kami atau upload ulang bukti transfer yang sesuai ya."
-    );
-  } else if (isCompleted) {
-    lines.push(
-      "",
-      "Pesanan Kakak telah selesai/terkonfirmasi. Semoga perjalanan dan layanannya menyenangkan ya!"
-    );
-  }
 
   return `https://wa.me/${waNumber}?text=${encodeURIComponent(lines.join("\n"))}`;
 }
@@ -746,10 +894,12 @@ export default function AdminDashboardPage() {
   const [advantagesItems, setAdvantagesItems] = useState<string[]>([""]);
   const [meetingPoints, setMeetingPoints] = useState<string[]>([""]);
   const [trailPosts, setTrailPosts] = useState<string[]>([""]);
-  const [includeItems, setIncludeItems] = useState<string[]>([""]);
-  const [itineraryItems, setItineraryItems] = useState<ItineraryEntry[]>([
-    { day: 1, startTime: "", endTime: "", activity: "" },
-  ]);
+  const [includeItems, setIncludeItems] = useState<string[]>(
+    cloneTripIncludeTemplate()
+  );
+  const [itineraryItems, setItineraryItems] = useState<ItineraryEntry[]>(
+    cloneTripItineraryTemplate()
+  );
   const [essentialItems, setEssentialItems] = useState<EssentialEntry[]>(
     cloneEssentialTemplate()
   );
@@ -765,6 +915,7 @@ export default function AdminDashboardPage() {
     useState<AdminOrderFilterTab>("WAITING_CONFIRMATION");
   const [previewProof, setPreviewProof] = useState<string | null>(null);
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+  const [remindingOrderId, setRemindingOrderId] = useState<string | null>(null);
 
   const [discounts, setDiscounts] = useState<DiscountCodeItem[]>([]);
   const [loadingDiscounts, setLoadingDiscounts] = useState(true);
@@ -939,6 +1090,48 @@ export default function AdminDashboardPage() {
       fetchDiscounts();
     }
   }, [activeMenu, orderTab, loadCustomerReviews, loadStoredAdminNotifs]);
+
+  const handleSendReturnReminder = async (order: AdminOrder) => {
+    setRemindingOrderId(order.id);
+    const code = `#${order.id.slice(-6).toUpperCase()}`;
+    const returnDate = extractReturnDateFromOrder(order);
+    const rentalTitles = order.items
+      .filter((it) => String(it.product?.category || "").toUpperCase() === "RENTAL")
+      .map((it) => it.product.title)
+      .join(", ");
+
+    const messageText = `Pengingat Pengembalian Rental (${code}): Jadwal pengembalian ${
+      rentalTitles ? `untuk ${rentalTitles} ` : ""
+    }pada ${
+      returnDate || "tanggal sewa"
+    } telah lewat. Mohon segera kembalikan alat atau hubungi admin Alam Memanggil.`;
+
+    try {
+      const res = await fetch("/api/admin/orders", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: order.id,
+          action: "SEND_RETURN_REMINDER",
+          returnDate,
+          reminderMessage: messageText,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(
+          data.message ||
+            `Pemberitahuan pengembalian dikirim ke customer pesanan ${code}.`
+        );
+      } else {
+        showToast(data.message || "Gagal mengirim pemberitahuan pengembalian.");
+      }
+    } catch {
+      showToast("Terjadi kesalahan saat mengirim pemberitahuan.");
+    } finally {
+      setRemindingOrderId(null);
+    }
+  };
 
   const handleCreateDiscount = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1158,8 +1351,14 @@ export default function AdminDashboardPage() {
     setAdvantagesItems([""]);
     setMeetingPoints([""]);
     setTrailPosts([""]);
-    setIncludeItems([""]);
-    setItineraryItems([{ day: 1, startTime: "", endTime: "", activity: "" }]);
+    setIncludeItems(
+      initialCat === "TRIP" ? cloneTripIncludeTemplate() : [""]
+    );
+    setItineraryItems(
+      initialCat === "TRIP"
+        ? cloneTripItineraryTemplate()
+        : [{ day: 1, startTime: "", endTime: "", activity: "" }]
+    );
     setEssentialItems(cloneEssentialTemplate());
     setRulesItems(cloneRulesTemplate(initialCat));
   };
@@ -1178,7 +1377,14 @@ export default function AdminDashboardPage() {
     if (!editingId) {
       setRulesItems(cloneRulesTemplate(nextCat));
       if (nextCat === "TRIP") {
+        setIncludeItems(cloneTripIncludeTemplate());
+        setItineraryItems(cloneTripItineraryTemplate());
         setEssentialItems(cloneEssentialTemplate());
+      } else {
+        setIncludeItems([""]);
+        setItineraryItems([
+          { day: 1, startTime: "", endTime: "", activity: "" },
+        ]);
       }
     }
   };
@@ -1240,18 +1446,32 @@ export default function AdminDashboardPage() {
     setTrailPosts(
       meta.trailPosts && meta.trailPosts.length > 0 ? meta.trailPosts : [""]
     );
-    setIncludeItems(
-      meta.includeItems && meta.includeItems.length > 0
-        ? meta.includeItems
-        : meta.includesText
-        ? meta.includesText.split("\n").filter(Boolean)
-        : [""]
-    );
+
+    if (meta.includeItems && meta.includeItems.length > 0) {
+      setIncludeItems(meta.includeItems);
+    } else if (meta.includesText) {
+      const parsedInc = meta.includesText.split("\n").filter(Boolean);
+      setIncludeItems(
+        parsedInc.length > 0
+          ? parsedInc
+          : resolvedCat === "TRIP"
+          ? cloneTripIncludeTemplate()
+          : [""]
+      );
+    } else {
+      setIncludeItems(
+        resolvedCat === "TRIP" ? cloneTripIncludeTemplate() : [""]
+      );
+    }
+
     setItineraryItems(
       meta.itineraryItems && meta.itineraryItems.length > 0
         ? meta.itineraryItems
+        : resolvedCat === "TRIP"
+        ? cloneTripItineraryTemplate()
         : [{ day: 1, startTime: "", endTime: "", activity: "" }]
     );
+
     setEssentialItems(
       meta.essentialItems && meta.essentialItems.length > 0
         ? meta.essentialItems
@@ -2484,6 +2704,8 @@ export default function AdminDashboardPage() {
                   const isCompletedOrder =
                     order.status === "COMPLETED" ||
                     order.status === "PROCESSING";
+                  const overdue = isOrderRentalOverdue(order);
+                  const returnDate = extractReturnDateFromOrder(order);
                   const customerWaUrl = buildCustomerWaContactUrl(
                     order,
                     formatRupiah
@@ -2493,17 +2715,27 @@ export default function AdminDashboardPage() {
                     <div
                       key={order.id}
                       className={`border rounded-2xl p-5 space-y-4 ${
-                        cancelledByCust
+                        overdue
+                          ? "border-rose-300 bg-rose-50/40"
+                          : cancelledByCust
                           ? "border-neutral-300 bg-neutral-100/70"
                           : "border-neutral-200 bg-neutral-50/40"
                       }`}
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div>
-                          <p className="text-xs font-black text-neutral-900">
-                            Order #{order.id.slice(-6).toUpperCase()} •{" "}
-                            {order.user.name || order.user.email}
-                          </p>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-xs font-black text-neutral-900">
+                              Order #{order.id.slice(-6).toUpperCase()} •{" "}
+                              {order.user.name || order.user.email}
+                            </p>
+                            {overdue && (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white">
+                                <AlertTriangle className="w-3 h-3" />
+                                Lewat Tgl Kembali ({returnDate})
+                              </span>
+                            )}
+                          </div>
                           <p className="text-[11px] text-neutral-600 mt-0.5">
                             No. WA Customer:{" "}
                             <strong className="text-neutral-900">
@@ -2582,6 +2814,22 @@ export default function AdminDashboardPage() {
                         </p>
 
                         <div className="flex flex-wrap gap-2">
+                          {overdue && (
+                            <button
+                              type="button"
+                              disabled={remindingOrderId === order.id}
+                              onClick={() => handleSendReturnReminder(order)}
+                              className="inline-flex items-center gap-1.5 text-xs font-black px-3.5 py-2 rounded-full bg-amber-500 hover:bg-amber-600 text-black shadow-2xs transition cursor-pointer disabled:opacity-60"
+                            >
+                              {remindingOrderId === order.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Send className="w-3.5 h-3.5" />
+                              )}
+                              <span>Kirim Pemberitahuan Kembali</span>
+                            </button>
+                          )}
+
                           {customerWaUrl && (
                             <a
                               href={customerWaUrl}
@@ -3118,6 +3366,82 @@ export default function AdminDashboardPage() {
               />
             </div>
 
+            {/* BLOK TANGGAL TIDAK BISA DIRENTAL / DIBLOKIR ADMIN & TANGGAL TERBOOKING */}
+            {category === "RENTAL" && (
+              <div className="space-y-2.5 bg-amber-50/70 p-4 rounded-2xl border border-amber-200">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-xs font-black text-[#6F4E37]">
+                    Kalender Rental — Tanggal Tidak Bisa Direntalkan (Diblokir Admin)
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="date"
+                      value={newUnavailableDate}
+                      onChange={(e) => setNewUnavailableDate(e.target.value)}
+                      className="border border-neutral-300 rounded-lg px-2.5 py-1 text-xs bg-white"
+                    />
+                    <button
+                      type="button"
+                      onClick={addUnavailableDate}
+                      className="inline-flex items-center gap-1 text-[10px] font-black px-3 py-1.5 rounded-full bg-rose-600 text-white cursor-pointer"
+                    >
+                      <Plus className="w-3 h-3" /> Blokir Tanggal
+                    </button>
+                  </div>
+                </div>
+
+                {unavailableDates.length === 0 ? (
+                  <p className="text-[11px] text-neutral-600">
+                    Belum ada tanggal yang diblokir admin untuk alat rental ini.
+                  </p>
+                ) : (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {unavailableDates.map((d) => (
+                      <span
+                        key={d}
+                        className="inline-flex items-center gap-1.5 bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-full text-[11px] font-bold"
+                      >
+                        <span>{d}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeUnavailableDate(d)}
+                          className="hover:text-rose-900 cursor-pointer"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {bookedDates.length > 0 && (
+                  <div className="pt-2 border-t border-amber-200/80">
+                    <p className="text-[10px] font-black uppercase text-neutral-600 mb-1">
+                      Tanggal Terbooking Otomatis Saat Customer Checkout (Klik × untuk melepas):
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {bookedDates.map((bd) => (
+                        <span
+                          key={bd}
+                          className="inline-flex items-center gap-1.5 bg-amber-100 text-[#6F4E37] border border-amber-300 px-2.5 py-0.5 rounded-full text-[10px] font-black"
+                        >
+                          <span>{bd} (Terbooking)</span>
+                          <button
+                            type="button"
+                            title="Lepas tanggal terbooking"
+                            onClick={() => releaseBookedDate(bd)}
+                            className="hover:text-rose-700 cursor-pointer"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {category === "OUTBOUND" && (
               <div className="space-y-4 bg-amber-50/50 p-4 rounded-2xl border border-amber-200/70">
                 <p className="text-xs font-black text-[#6F4E37]">
@@ -3543,17 +3867,30 @@ export default function AdminDashboardPage() {
                 </div>
 
                 <div className="space-y-2 bg-white p-3.5 rounded-xl border border-amber-200">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="text-xs font-black text-neutral-800">
                       Include Paket Trip
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => setIncludeItems((prev) => [...prev, ""])}
-                      className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full bg-[#6F4E37] text-white cursor-pointer"
-                    >
-                      <Plus className="w-3 h-3" /> Tambah Include
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      {!editingId && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setIncludeItems(cloneTripIncludeTemplate())
+                          }
+                          className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-[#6F4E37] hover:bg-amber-200 cursor-pointer"
+                        >
+                          <RotateCcw className="w-3 h-3" /> Reset Template
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setIncludeItems((prev) => [...prev, ""])}
+                        className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full bg-[#6F4E37] text-white cursor-pointer"
+                      >
+                        <Plus className="w-3 h-3" /> Tambah Include
+                      </button>
+                    </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {includeItems.map((inc, idx) => (
@@ -3580,17 +3917,30 @@ export default function AdminDashboardPage() {
                 </div>
 
                 <div className="space-y-2 bg-white p-3.5 rounded-xl border border-amber-200">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="text-xs font-black text-neutral-800">
                       Itinerary (Day, Jam Mulai - Selesai, Jenis Kegiatan)
                     </span>
-                    <button
-                      type="button"
-                      onClick={addItineraryRow}
-                      className="inline-flex items-center gap-1 text-[11px] font-black px-3 py-1 rounded-full bg-[#6F4E37] text-white cursor-pointer"
-                    >
-                      <Plus className="w-3 h-3" /> Tambah Baris
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      {!editingId && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setItineraryItems(cloneTripItineraryTemplate())
+                          }
+                          className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-[#6F4E37] hover:bg-amber-200 cursor-pointer"
+                        >
+                          <RotateCcw className="w-3 h-3" /> Reset Template
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={addItineraryRow}
+                        className="inline-flex items-center gap-1 text-[11px] font-black px-3 py-1 rounded-full bg-[#6F4E37] text-white cursor-pointer"
+                      >
+                        <Plus className="w-3 h-3" /> Tambah Baris
+                      </button>
+                    </div>
                   </div>
 
                   {itineraryItems.map((row, idx) => (
@@ -3778,12 +4128,10 @@ export default function AdminDashboardPage() {
               </div>
             )}
 
-            <div className="space-y-2 bg-neutral-50 p-4 rounded-2xl border border-neutral-200">
+            <div className="space-y-2 bg-amber-50/50 p-4 rounded-2xl border border-amber-200/70">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-xs font-black text-neutral-800">
-                  {category === "RENTAL"
-                    ? "Peraturan Rental / Syarat & Ketentuan (No & Ketentuan)"
-                    : "Rules / Syarat & Ketentuan (No & Ketentuan)"}
+                <span className="text-xs font-black text-[#6F4E37]">
+                  Rules & Ketentuan ({category})
                 </span>
                 <div className="flex items-center gap-1.5">
                   {!editingId && (
@@ -3800,24 +4148,24 @@ export default function AdminDashboardPage() {
                     onClick={addRuleRow}
                     className="inline-flex items-center gap-1 text-[11px] font-black px-3 py-1 rounded-full bg-[#6F4E37] text-white cursor-pointer"
                   >
-                    <Plus className="w-3 h-3" /> Tambah Ketentuan
+                    <Plus className="w-3 h-3" /> Tambah Aturan
                   </button>
                 </div>
               </div>
 
-              {rulesItems.map((row, idx) => (
+              {rulesItems.map((item, idx) => (
                 <div
                   key={idx}
                   className="grid grid-cols-12 gap-2 items-center pt-1"
                 >
-                  <div className="col-span-2 sm:col-span-1">
+                  <div className="col-span-2">
                     <label className="text-[10px] font-bold text-neutral-400">
                       No
                     </label>
                     <input
                       type="number"
                       min={1}
-                      value={row.no}
+                      value={item.no}
                       onChange={(e) =>
                         updateRuleRow(
                           idx,
@@ -3828,22 +4176,18 @@ export default function AdminDashboardPage() {
                       className="w-full border border-neutral-300 rounded-lg px-2 py-1.5 text-xs bg-white"
                     />
                   </div>
-                  <div className="col-span-9 sm:col-span-10">
+                  <div className="col-span-9">
                     <label className="text-[10px] font-bold text-neutral-400">
-                      Ketentuan
+                      Isi Aturan / Ketentuan
                     </label>
                     <input
                       type="text"
-                      value={row.rule}
+                      value={item.rule}
                       onChange={(e) =>
                         updateRuleRow(idx, "rule", e.target.value)
                       }
-                      placeholder={
-                        category === "RENTAL"
-                          ? "Contoh: Kerusakan atau kehilangan alat menjadi tanggung jawab penyewa"
-                          : "Contoh: Peserta wajib dalam kondisi sehat jasmani & rohani"
-                      }
-                      className="w-full border border-neutral-300 rounded-lg px-3 py-1.5 text-xs bg-white"
+                      placeholder="Tulis aturan / ketentuan..."
+                      className="w-full border border-neutral-300 rounded-lg px-2.5 py-1.5 text-xs bg-white"
                     />
                   </div>
                   <div className="col-span-1 pt-4 flex justify-end">
@@ -3859,18 +4203,18 @@ export default function AdminDashboardPage() {
               ))}
             </div>
 
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex justify-end gap-2 pt-3 border-t border-neutral-100">
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 rounded-full text-xs font-bold bg-neutral-100 cursor-pointer"
+                className="px-4 py-2 rounded-full text-xs font-bold bg-neutral-100 hover:bg-neutral-200 cursor-pointer"
               >
                 Batal
               </button>
               <button
                 type="submit"
                 disabled={savingProduct}
-                className="px-5 py-2 rounded-full text-xs font-black bg-[#6F4E37] text-white cursor-pointer"
+                className="px-6 py-2 rounded-full text-xs font-black bg-[#6F4E37] hover:bg-[#5a3e2b] text-white cursor-pointer"
               >
                 {savingProduct ? "Menyimpan..." : "Simpan Paket"}
               </button>
@@ -3880,72 +4224,54 @@ export default function AdminDashboardPage() {
       )}
 
       {activeCropImage && (
-        <div className="fixed inset-0 z-60 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white/95 backdrop-blur-2xl rounded-[32px] max-w-2xl w-full p-6 shadow-2xl border border-black/[0.08] space-y-5 max-h-[92vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-neutral-100 pb-3.5">
+        <div className="fixed inset-0 z-[60] bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-[28px] max-w-2xl w-full p-6 shadow-2xl border border-black/10 space-y-5 my-8">
+            <div className="flex items-start justify-between gap-3 border-b border-neutral-100 pb-3">
               <div>
-                <h3 className="text-sm font-black text-neutral-950 flex items-center gap-2">
-                  <Crop className="w-4 h-4 text-[#6F4E37]" />
-                  <span>
-                    {cropTarget === "COVER"
-                      ? "Crop Foto Produk"
-                      : `Crop Foto Dokumentasi ${
-                          cropQueue.length > 1
-                            ? `(Sisa ${cropQueue.length} foto)`
-                            : ""
-                        }`}
-                  </span>
+                <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-100 text-[#6F4E37]">
+                  <Crop className="w-3 h-3" /> Cropper Foto ({cropQueue.length}{" "}
+                  tersisa)
+                </span>
+                <h3 className="text-base font-black text-neutral-950 mt-1">
+                  Sesuaikan Framing Foto{" "}
+                  {cropTarget === "COVER"
+                    ? "Produk / Card"
+                    : "Dokumentasi Detail"}
                 </h3>
                 <p className="text-[11px] text-neutral-500 mt-0.5">
-                  Atur bingkai & posisi alat agar terlihat utuh dan jelas di katalog
+                  {activeCropPresetObj.layoutHint}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={handleCancelCropQueue}
-                className="p-2 rounded-full bg-neutral-100 hover:bg-neutral-200 cursor-pointer transition"
+                className="p-1.5 rounded-full hover:bg-neutral-100 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="block text-[11px] font-black uppercase tracking-wider text-neutral-500">
-                Rasio Bingkai E-Commerce
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {CROP_PRESETS.map((preset) => {
-                  const selected = cropPreset === preset.key;
-                  return (
-                    <button
-                      key={preset.key}
-                      type="button"
-                      onClick={() => {
-                        setCropPreset(preset.key);
-                        setCropOffsetX(0);
-                        setCropOffsetY(0);
-                      }}
-                      className={`text-left p-2.5 rounded-2xl border transition cursor-pointer ${
-                        selected
-                          ? "bg-neutral-950 text-white border-neutral-950 shadow-sm"
-                          : "bg-neutral-100/80 hover:bg-neutral-200/70 text-neutral-800 border-transparent"
-                      }`}
-                    >
-                      <p className="text-xs font-black">{preset.label}</p>
-                      <p
-                        className={`text-[10px] mt-0.5 ${
-                          selected ? "text-neutral-300" : "text-neutral-500"
-                        }`}
-                      >
-                        {preset.layoutHint}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
+            <div className="flex flex-wrap gap-1.5">
+              {CROP_PRESETS.map((preset) => {
+                const active = cropPreset === preset.key;
+                return (
+                  <button
+                    key={preset.key}
+                    type="button"
+                    onClick={() => setCropPreset(preset.key)}
+                    className={`px-3 py-1.5 rounded-full text-[11px] font-black transition cursor-pointer ${
+                      active
+                        ? "bg-neutral-950 text-white shadow-2xs"
+                        : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                );
+              })}
             </div>
 
-            <div className="bg-[#F2F2F7] rounded-[24px] p-4 flex flex-col items-center justify-center min-h-64 border border-black/[0.05]">
+            <div className="rounded-2xl bg-neutral-950/95 p-4 flex items-center justify-center min-h-[250px] max-h-[340px] overflow-hidden">
               <div
                 style={{
                   aspectRatio:
@@ -3953,33 +4279,40 @@ export default function AdminDashboardPage() {
                       ? String(activeCropPresetObj.ratio)
                       : "4 / 3",
                 }}
-                className="relative w-full max-w-md max-h-72 overflow-hidden rounded-2xl border-2 border-[#6F4E37] bg-white shadow-inner flex items-center justify-center"
+                className="relative h-56 max-w-full rounded-xl overflow-hidden border-2 border-amber-400/80 shadow-lg bg-neutral-900 flex items-center justify-center"
               >
                 <img
                   src={activeCropImage}
-                  alt="Preview Crop Produk"
+                  alt="Preview Crop"
                   style={{
                     transform: `translate(${cropOffsetX * 0.45}%, ${
                       cropOffsetY * 0.45
                     }%) scale(${cropZoom})`,
                   }}
-                  className="w-full h-full object-contain transition-transform duration-75 select-none"
+                  className="w-full h-full object-contain transition-transform duration-100 select-none"
                 />
+                <div className="pointer-events-none absolute inset-0 grid grid-cols-3 grid-rows-3 opacity-30">
+                  <div className="border-r border-b border-white/60" />
+                  <div className="border-r border-b border-white/60" />
+                  <div className="border-b border-white/60" />
+                  <div className="border-r border-b border-white/60" />
+                  <div className="border-r border-b border-white/60" />
+                  <div className="border-b border-white/60" />
+                  <div className="border-r border-white/60" />
+                  <div className="border-r border-white/60" />
+                  <div />
+                </div>
               </div>
-              <span className="text-[11px] text-neutral-600 mt-2.5 font-semibold">
-                Bingkai: <strong>{activeCropPresetObj.label}</strong> •{" "}
-                {activeCropPresetObj.layoutHint}
-              </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-neutral-100/80 p-3.5 rounded-2xl">
-              <div>
-                <label className="flex items-center justify-between text-[11px] font-bold text-neutral-700 mb-1">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-neutral-50 p-3.5 rounded-2xl border border-neutral-200/80">
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-[11px] font-bold text-neutral-700">
                   <span className="inline-flex items-center gap-1">
                     <ZoomIn className="w-3.5 h-3.5 text-[#6F4E37]" /> Zoom
                   </span>
                   <span>{cropZoom.toFixed(1)}x</span>
-                </label>
+                </div>
                 <input
                   type="range"
                   min={1}
@@ -3991,38 +4324,36 @@ export default function AdminDashboardPage() {
                 />
               </div>
 
-              <div>
-                <label className="flex items-center justify-between text-[11px] font-bold text-neutral-700 mb-1">
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-[11px] font-bold text-neutral-700">
                   <span className="inline-flex items-center gap-1">
-                    <Move className="w-3.5 h-3.5 text-[#6F4E37]" /> Geser
-                    Horizontal
+                    <Move className="w-3.5 h-3.5 text-[#6F4E37]" /> Geser X
                   </span>
                   <span>{cropOffsetX}%</span>
-                </label>
+                </div>
                 <input
                   type="range"
                   min={-100}
                   max={100}
-                  step={1}
+                  step={5}
                   value={cropOffsetX}
                   onChange={(e) => setCropOffsetX(Number(e.target.value))}
                   className="w-full accent-[#6F4E37] cursor-pointer"
                 />
               </div>
 
-              <div>
-                <label className="flex items-center justify-between text-[11px] font-bold text-neutral-700 mb-1">
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-[11px] font-bold text-neutral-700">
                   <span className="inline-flex items-center gap-1">
-                    <Move className="w-3.5 h-3.5 text-[#6F4E37]" /> Geser
-                    Vertikal
+                    <Move className="w-3.5 h-3.5 text-[#6F4E37]" /> Geser Y
                   </span>
                   <span>{cropOffsetY}%</span>
-                </label>
+                </div>
                 <input
                   type="range"
                   min={-100}
                   max={100}
-                  step={1}
+                  step={5}
                   value={cropOffsetY}
                   onChange={(e) => setCropOffsetY(Number(e.target.value))}
                   className="w-full accent-[#6F4E37] cursor-pointer"
@@ -4030,33 +4361,38 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-neutral-100">
               <button
                 type="button"
-                onClick={handleSkipCropCurrent}
-                className="px-4 py-2 rounded-full text-xs font-bold bg-neutral-100 hover:bg-neutral-200 text-neutral-800 cursor-pointer transition"
+                onClick={() => {
+                  setCropZoom(1);
+                  setCropOffsetX(0);
+                  setCropOffsetY(0);
+                }}
+                className="inline-flex items-center gap-1 px-3.5 py-2 rounded-full text-xs font-bold bg-neutral-100 hover:bg-neutral-200 text-neutral-800 cursor-pointer"
               >
-                Pakai Foto Asli
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Reset</span>
               </button>
 
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={handleCancelCropQueue}
-                  className="px-4 py-2 rounded-full text-xs font-bold bg-neutral-100 hover:bg-neutral-200 text-neutral-800 cursor-pointer transition"
+                  onClick={handleSkipCropCurrent}
+                  className="px-4 py-2 rounded-full text-xs font-bold bg-neutral-100 hover:bg-neutral-200 text-neutral-800 cursor-pointer"
                 >
-                  Batal
+                  Pakai Asli
                 </button>
                 <button
                   type="button"
                   disabled={applyingCrop}
                   onClick={handleApplyCrop}
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-black bg-neutral-950 hover:bg-[#6F4E37] text-white shadow-sm cursor-pointer transition"
+                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-black bg-neutral-950 hover:bg-[#6F4E37] text-white cursor-pointer"
                 >
                   {applyingCrop ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   ) : (
-                    <Crop className="w-3.5 h-3.5" />
+                    <Check className="w-3.5 h-3.5" />
                   )}
                   <span>Terapkan Crop</span>
                 </button>
@@ -4067,14 +4403,14 @@ export default function AdminDashboardPage() {
       )}
 
       {previewProof && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-5 max-w-md w-full space-y-3">
-            <div className="flex justify-between items-center">
-              <h3 className="text-sm font-black">Bukti Transfer Pelanggan</h3>
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-black">Bukti Transfer Customer</h3>
               <button
                 type="button"
                 onClick={() => setPreviewProof(null)}
-                className="p-1 rounded-full hover:bg-neutral-100 cursor-pointer"
+                className="p-1.5 rounded-full hover:bg-neutral-100 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -4082,7 +4418,7 @@ export default function AdminDashboardPage() {
             <img
               src={previewProof}
               alt="Bukti Transfer"
-              className="w-full max-h-96 object-contain rounded-2xl border border-neutral-200"
+              className="w-full max-h-[70vh] object-contain rounded-2xl bg-neutral-100 p-2"
             />
           </div>
         </div>

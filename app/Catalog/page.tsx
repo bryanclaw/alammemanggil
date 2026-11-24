@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import {
   Backpack,
   Footprints,
@@ -14,10 +14,12 @@ import {
   Sparkles,
   Loader2,
   SlidersHorizontal,
-  Moon,
+  Calendar,
   ArrowUpRight,
   Check,
   X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 type RentalCategoryKey =
@@ -39,6 +41,8 @@ interface RentalMeta {
   conditionNote?: string;
   rulesItems?: RentalRuleEntry[];
   rulesText?: string;
+  unavailableDates?: string[];
+  bookedDates?: string[];
 }
 
 interface RentalProduct {
@@ -96,21 +100,111 @@ const FALLBACK_RENTAL_RULES: RentalRuleEntry[] = [
   },
   {
     no: 2,
-    rule: "Penyewa wajib menyertakan identitas valid (KTP/SIM) serta memastikan kondisi fisik alat saat diterima bersama tim Alam Memanggil.",
+    rule: "Pengambilan alat maksimal H-1 dan pengembalian maksimal H+1 dari jadwal sewa (atau tepat hari H / tanggal sewa).",
   },
   {
     no: 3,
-    rule: "Segala bentuk kerusakan, sobek, patah, atau kehilangan alat selama masa sewa menjadi tanggung jawab penyewa sesuai tingkat kerusakan atau biaya penggantian.",
+    rule: "Penyewa wajib menyertakan identitas valid (KTP/SIM) serta memastikan kondisi fisik alat saat diterima bersama tim Alam Memanggil.",
   },
   {
     no: 4,
-    rule: "Keterlambatan pengembalian alat dikenakan denda per malam/hari sesuai tarif sewa paket.",
+    rule: "Segala bentuk kerusakan, sobek, patah, atau kehilangan alat selama masa sewa menjadi tanggung jawab penyewa sesuai tingkat kerusakan atau biaya penggantian.",
   },
   {
     no: 5,
-    rule: "Dilarang mengubah struktur, memodifikasi, atau menyewakan kembali alat yang sedang dalam masa rental tanpa izin tertulis dari Alam Memanggil.",
+    rule: "Keterlambatan pengembalian melewati batas waktu dikenakan denda per malam/hari sesuai tarif sewa paket.",
   },
 ];
+
+const MONTH_NAMES_ID = [
+  "Januari",
+  "Februari",
+  "Maret",
+  "April",
+  "Mei",
+  "Juni",
+  "Juli",
+  "Agustus",
+  "September",
+  "Oktober",
+  "November",
+  "Desember",
+];
+
+const DAY_HEADERS_ID = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+
+function parseIsoDate(iso: string): Date | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
+  const [y, m, d] = iso.split("-").map(Number);
+  const dt = new Date(y, (m || 1) - 1, d || 1);
+  return Number.isNaN(dt.getTime()) ? null : dt;
+}
+
+function toIsoDate(dt: Date): string {
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth() + 1).padStart(2, "0");
+  const d = String(dt.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function addDaysIso(iso: string, deltaDays: number): string {
+  const dt = parseIsoDate(iso);
+  if (!dt) return iso;
+  dt.setDate(dt.getDate() + deltaDays);
+  return toIsoDate(dt);
+}
+
+function diffDaysIso(startIso: string, endIso: string): number {
+  const a = parseIsoDate(startIso);
+  const b = parseIsoDate(endIso);
+  if (!a || !b) return 0;
+  const utcA = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+  const utcB = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+  return Math.round((utcB - utcA) / (1000 * 60 * 60 * 24));
+}
+
+function clampIsoDate(targetIso: string, minIso: string, maxIso: string): string {
+  if (!parseIsoDate(targetIso)) return minIso;
+  if (parseIsoDate(minIso) && targetIso < minIso) return minIso;
+  if (parseIsoDate(maxIso) && targetIso > maxIso) return maxIso;
+  return targetIso;
+}
+
+function expandDateRangeIso(startIso: string, endIso: string): string[] {
+  const a = parseIsoDate(startIso);
+  const b = parseIsoDate(endIso);
+  if (!a || !b) return [];
+  const minD = a <= b ? a : b;
+  const maxD = a <= b ? b : a;
+  const out: string[] = [];
+  const cur = new Date(minD);
+  while (cur <= maxD) {
+    out.push(toIsoDate(cur));
+    cur.setDate(cur.getDate() + 1);
+  }
+  return out;
+}
+
+function getTodayIso(): string {
+  return toIsoDate(new Date());
+}
+
+function formatShortDateId(iso: string): string {
+  const dt = parseIsoDate(iso);
+  if (!dt) return iso;
+  const dd = String(dt.getDate()).padStart(2, "0");
+  const mm = String(dt.getMonth() + 1).padStart(2, "0");
+  const yyyy = dt.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+
+function formatRupiah(val: number): string {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(val);
+}
 
 function getCategoryLabel(subCat?: string | null): string {
   const found = RENTAL_CATEGORIES.find((c) => c.key === subCat);
@@ -136,83 +230,271 @@ function getRulesFromProduct(item: RentalProduct): RentalRuleEntry[] {
   return FALLBACK_RENTAL_RULES;
 }
 
-function RentalGear3DCard({
+export interface RentalCalculationSummary {
+  rentalStartDate: string;
+  rentalEndDate: string;
+  pickupDate: string;
+  returnDate: string;
+  baseNights: number;
+  extraChargeNights: number;
+  totalBilledNights: number;
+  qty: number;
+  baseSubtotal: number;
+  extraSubtotal: number;
+  totalPrice: number;
+  blockedConflicts: string[];
+  bookedConflicts: string[];
+  scheduleLabel: string;
+  datesToLock: string[];
+}
+
+function calculateRentalBooking(
+  item: RentalProduct,
+  rentalStartDate: string,
+  rentalEndDate: string,
+  pickupDate: string,
+  returnDate: string,
+  qty: number
+): RentalCalculationSummary {
+  const meta = (item.metaData || {}) as RentalMeta;
+  const blockedSet = new Set(meta.unavailableDates || []);
+  const bookedSet = new Set(meta.bookedDates || []);
+
+  const rawDiff = diffDaysIso(rentalStartDate, rentalEndDate);
+  const baseNights = Math.max(1, rawDiff > 0 ? rawDiff : 1);
+  const safeRentalEnd =
+    rawDiff > 0 ? rentalEndDate : addDaysIso(rentalStartDate, 1);
+
+  const minAllowedPickup = addDaysIso(rentalStartDate, -1); // H-1
+  const maxAllowedReturn = addDaysIso(safeRentalEnd, 1); // H+1
+
+  const safePickup = clampIsoDate(pickupDate, minAllowedPickup, rentalStartDate);
+  const safeReturn = clampIsoDate(returnDate, safeRentalEnd, maxAllowedReturn);
+
+  const extraChargeNights = 0;
+  const totalBilledNights = baseNights;
+
+  const baseSubtotal = item.price * baseNights * qty;
+  const extraSubtotal = 0;
+  const totalPrice = item.price * totalBilledNights * qty;
+
+  const rentalDates = expandDateRangeIso(rentalStartDate, safeRentalEnd);
+  const blockedConflicts = rentalDates.filter((d) => blockedSet.has(d));
+  const bookedConflicts = rentalDates.filter((d) => bookedSet.has(d));
+
+  const scheduleLabel = `Rental ${rentalStartDate} s/d ${safeRentalEnd} (${baseNights} mlm) | Ambil: ${safePickup} | Kembali: ${safeReturn}`;
+
+  return {
+    rentalStartDate,
+    rentalEndDate: safeRentalEnd,
+    pickupDate: safePickup,
+    returnDate: safeReturn,
+    baseNights,
+    extraChargeNights,
+    totalBilledNights,
+    qty,
+    baseSubtotal,
+    extraSubtotal,
+    totalPrice,
+    blockedConflicts,
+    bookedConflicts,
+    scheduleLabel,
+    datesToLock: rentalDates,
+  };
+}
+
+function BlockedRedDateInput({
+  value,
+  min,
+  max,
+  blockedDates,
+  onChange,
+  align = "left",
+}: {
+  value: string;
+  min?: string;
+  max?: string;
+  blockedDates: Set<string>;
+  onChange: (nextIso: string) => void;
+  align?: "left" | "right";
+}) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const initialDate =
+    parseIsoDate(value) || parseIsoDate(min || "") || new Date();
+  const [viewYear, setViewYear] = useState(initialDate.getFullYear());
+  const [viewMonth, setViewMonth] = useState(initialDate.getMonth());
+
+  useEffect(() => {
+    const dt = parseIsoDate(value);
+    if (dt) {
+      setViewYear(dt.getFullYear());
+      setViewMonth(dt.getMonth());
+    }
+  }, [value]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleOutside = (e: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [open]);
+
+  const calendarCells = useMemo(() => {
+    const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+    const cells: { iso: string | null; day: number | null }[] = [];
+    for (let i = 0; i < firstDay; i++) {
+      cells.push({ iso: null, day: null });
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const iso = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-${String(
+        d
+      ).padStart(2, "0")}`;
+      cells.push({ iso, day: d });
+    }
+    return cells;
+  }, [viewYear, viewMonth]);
+
+  const handlePrevMonth = () => {
+    if (viewMonth === 0) {
+      setViewMonth(11);
+      setViewYear((y) => y - 1);
+    } else {
+      setViewMonth((m) => m - 1);
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (viewMonth === 11) {
+      setViewMonth(0);
+      setViewYear((y) => y + 1);
+    } else {
+      setViewMonth((m) => m + 1);
+    }
+  };
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="w-full bg-white border border-neutral-300 rounded-xl px-2.5 py-2 text-xs font-bold text-neutral-900 flex items-center justify-between gap-1 hover:border-[#6F4E37] transition cursor-pointer text-left"
+      >
+        <span className="truncate">{formatShortDateId(value)}</span>
+        <Calendar className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+      </button>
+
+      {open && (
+        <div
+          onMouseDown={(e) => e.stopPropagation()}
+          className={`absolute ${
+            align === "right" ? "right-0" : "left-0"
+          } top-full mt-1.5 z-50 w-60 rounded-2xl bg-white border border-neutral-200 shadow-2xl p-3 select-none`}
+        >
+          <div className="flex items-center justify-between mb-2">
+            <button
+              type="button"
+              onClick={handlePrevMonth}
+              className="w-6 h-6 rounded-lg hover:bg-neutral-100 flex items-center justify-center text-neutral-700 cursor-pointer"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+            <span className="text-xs font-black text-neutral-900">
+              {MONTH_NAMES_ID[viewMonth]} {viewYear}
+            </span>
+            <button
+              type="button"
+              onClick={handleNextMonth}
+              className="w-6 h-6 rounded-lg hover:bg-neutral-100 flex items-center justify-center text-neutral-700 cursor-pointer"
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-7 gap-0.5 mb-1">
+            {DAY_HEADERS_ID.map((hdr) => (
+              <div
+                key={hdr}
+                className="text-center text-[10px] font-extrabold text-neutral-400"
+              >
+                {hdr}
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-7 gap-1">
+            {calendarCells.map((cell, idx) => {
+              if (!cell.iso || !cell.day) {
+                return <div key={`empty-${idx}`} className="h-7" />;
+              }
+
+              const isBlocked = blockedDates.has(cell.iso);
+              const isOutOfRange =
+                (min && cell.iso < min) || (max && cell.iso > max);
+              const isDisabled = Boolean(isOutOfRange || isBlocked);
+              const isSelected = cell.iso === value && !isBlocked;
+
+              return (
+                <button
+                  key={cell.iso}
+                  type="button"
+                  disabled={isDisabled}
+                  onClick={() => {
+                    if (isBlocked) return;
+                    onChange(cell.iso!);
+                    setOpen(false);
+                  }}
+                  className={`h-7 rounded-lg text-[11px] font-bold flex items-center justify-center transition ${
+                    isBlocked
+                      ? "bg-red-600 text-white font-black opacity-90 cursor-not-allowed"
+                      : isSelected
+                      ? "bg-[#6F4E37] text-white font-black cursor-pointer"
+                      : isOutOfRange
+                      ? "text-neutral-300 cursor-not-allowed"
+                      : "text-neutral-800 hover:bg-neutral-100 cursor-pointer"
+                  }`}
+                >
+                  {cell.day}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RentalGearSimpleCard({
   item,
-  agreed,
-  onToggleAgree,
-  onOpenRules,
-  onAddToCart,
-  addingId,
+  onOpenBooking,
   justAddedId,
 }: {
   item: RentalProduct;
-  agreed: boolean;
-  onToggleAgree: (id: string) => void;
-  onOpenRules: (item: RentalProduct) => void;
-  onAddToCart: (item: RentalProduct, nights: number, qty: number) => void;
-  addingId: string | null;
+  onOpenBooking: (item: RentalProduct) => void;
   justAddedId: string | null;
 }) {
-  const [tilt, setTilt] = useState({ rx: 0, ry: 0, gx: 50, gy: 50 });
-  const [nights, setNights] = useState<number>(1);
-  const [qty, setQty] = useState<number>(1);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const px = (e.clientX - rect.left) / rect.width;
-    const py = (e.clientY - rect.top) / rect.height;
-    const ry = (px - 0.5) * 14;
-    const rx = (0.5 - py) * 14;
-    setTilt({
-      rx,
-      ry,
-      gx: Math.round(px * 100),
-      gy: Math.round(py * 100),
-    });
-  };
-
-  const handleMouseLeave = () => {
-    setTilt({ rx: 0, ry: 0, gx: 50, gy: 50 });
-  };
-
-  const formatRupiah = (val: number) =>
-    new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(val);
-
-  const subtotal = item.price * nights * qty;
-  const maxStock = Math.max(1, Number(item.stock) || 10);
   const isOutOfStock = Number(item.stock) <= 0;
-  const isAdding = addingId === item.id;
   const isAdded = justAddedId === item.id;
 
   return (
-    <div style={{ perspective: "1100px" }} className="group relative h-full">
-      <div
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        style={{
-          transform: `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg) translateZ(0px)`,
-          transformStyle: "preserve-3d",
-        }}
-        className="relative h-full rounded-[28px] bg-white/90 backdrop-blur-xl border border-black/[0.07] shadow-[0_14px_34px_-12px_rgba(24,24,27,0.12)] hover:shadow-[0_26px_54px_-14px_rgba(111,78,55,0.22)] transition-all duration-200 ease-out flex flex-col justify-between overflow-hidden"
-      >
-        <div
-          style={{
-            background: `radial-gradient(circle at ${tilt.gx}% ${tilt.gy}%, rgba(255,255,255,0.65), transparent 55%)`,
-          }}
-          className="pointer-events-none absolute inset-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-        />
-
+    <div className="group relative h-full">
+      <div className="relative h-full rounded-[26px] bg-white/95 backdrop-blur-xl border border-black/[0.07] shadow-[0_12px_28px_-12px_rgba(24,24,27,0.1)] hover:shadow-[0_22px_46px_-14px_rgba(111,78,55,0.2)] transition-all duration-200 ease-out flex flex-col justify-between overflow-hidden">
         <div>
-          <div className="relative aspect-[4/3] m-2.5 rounded-[22px] overflow-hidden bg-gradient-to-b from-neutral-50 to-neutral-100/90 border border-black/[0.05] flex items-center justify-center p-3">
+          <div className="relative aspect-[4/3] m-2.5 rounded-[20px] overflow-hidden bg-gradient-to-b from-neutral-50 to-neutral-100/90 border border-black/[0.05] flex items-center justify-center p-4">
             {item.image ? (
               <img
                 src={item.image}
                 alt={item.title}
-                style={{ transform: "translateZ(18px)" }}
                 className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 select-none"
               />
             ) : (
@@ -221,7 +503,7 @@ function RentalGear3DCard({
               </div>
             )}
 
-            <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5">
+            <div className="absolute top-3 left-3 z-20">
               <span className="px-3 py-1 rounded-full bg-black/75 backdrop-blur-md text-white text-[10px] font-bold tracking-wide">
                 {getCategoryLabel(item.subCategory)}
               </span>
@@ -232,7 +514,7 @@ function RentalGear3DCard({
                 className={`px-2.5 py-1 rounded-full backdrop-blur-md text-[10px] font-extrabold ${
                   isOutOfStock
                     ? "bg-rose-600/90 text-white"
-                    : "bg-white/95 text-neutral-900 border border-black/[0.06] shadow-2xs"
+                    : "bg-white/95 text-neutral-900 border border-black/[0.06]"
                 }`}
               >
                 {isOutOfStock ? "Habis" : `Stok ${item.stock}`}
@@ -240,7 +522,7 @@ function RentalGear3DCard({
             </div>
 
             <div className="absolute bottom-3 left-3 z-20">
-              <div className="px-3.5 py-1.5 rounded-2xl bg-neutral-950/85 backdrop-blur-md text-white shadow-sm">
+              <div className="px-3.5 py-1.5 rounded-2xl bg-neutral-950/85 backdrop-blur-md text-white shadow-xs">
                 <span className="text-sm font-black tracking-tight">
                   {formatRupiah(item.price)}
                 </span>
@@ -251,7 +533,7 @@ function RentalGear3DCard({
             </div>
           </div>
 
-          <div className="px-5 pt-2 pb-3 space-y-2">
+          <div className="px-5 pt-1.5 pb-3 space-y-1.5">
             <h3 className="text-base font-black text-neutral-900 tracking-tight leading-snug">
               {item.title}
             </h3>
@@ -262,120 +544,20 @@ function RentalGear3DCard({
           </div>
         </div>
 
-        <div className="px-5 pb-5 pt-2 space-y-3 border-t border-neutral-100">
-          <div className="grid grid-cols-2 gap-2">
-            <div className="bg-neutral-100/80 rounded-2xl px-3 py-2 flex items-center justify-between">
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-neutral-600">
-                <Moon className="w-3.5 h-3.5 text-[#6F4E37]" />
-                Malam
-              </span>
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setNights((n) => Math.max(1, n - 1))}
-                  className="w-5 h-5 rounded-full bg-white text-neutral-900 text-xs font-black flex items-center justify-center shadow-2xs hover:bg-neutral-200/60 cursor-pointer"
-                >
-                  -
-                </button>
-                <span className="text-xs font-black text-neutral-900 w-4 text-center">
-                  {nights}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setNights((n) => Math.min(30, n + 1))}
-                  className="w-5 h-5 rounded-full bg-white text-neutral-900 text-xs font-black flex items-center justify-center shadow-2xs hover:bg-neutral-200/60 cursor-pointer"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            <div className="bg-neutral-100/80 rounded-2xl px-3 py-2 flex items-center justify-between">
-              <span className="text-[11px] font-bold text-neutral-600">
-                Jumlah
-              </span>
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  disabled={isOutOfStock}
-                  onClick={() => setQty((q) => Math.max(1, q - 1))}
-                  className="w-5 h-5 rounded-full bg-white text-neutral-900 text-xs font-black flex items-center justify-center shadow-2xs hover:bg-neutral-200/60 cursor-pointer disabled:opacity-40"
-                >
-                  -
-                </button>
-                <span className="text-xs font-black text-neutral-900 w-4 text-center">
-                  {qty}
-                </span>
-                <button
-                  type="button"
-                  disabled={isOutOfStock || qty >= maxStock}
-                  onClick={() => setQty((q) => Math.min(maxStock, q + 1))}
-                  className="w-5 h-5 rounded-full bg-white text-neutral-900 text-xs font-black flex items-center justify-center shadow-2xs hover:bg-neutral-200/60 cursor-pointer disabled:opacity-40"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl bg-[#FAF8F5] border border-amber-900/10 p-3 space-y-2">
-            <div className="flex items-center justify-between gap-2">
-              <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-[#6F4E37]">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                Peraturan Rental
-              </span>
-              <button
-                type="button"
-                onClick={() => onOpenRules(item)}
-                className="inline-flex items-center gap-0.5 text-[11px] font-black text-neutral-800 underline hover:text-[#6F4E37] cursor-pointer"
-              >
-                <span>Baca lengkap</span>
-                <ArrowUpRight className="w-3 h-3" />
-              </button>
-            </div>
-
-            <label className="flex items-start gap-2 text-[11px] text-neutral-700 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={agreed}
-                onChange={() => onToggleAgree(item.id)}
-                className="mt-0.5 w-3.5 h-3.5 rounded accent-[#6F4E37] cursor-pointer"
-              />
-              <span className="font-semibold leading-snug">
-                Saya telah membaca & menyetujui peraturan sewa alat rental ini.
-              </span>
-            </label>
-          </div>
-
-          <div className="flex items-center justify-between text-xs pt-0.5">
-            <span className="text-neutral-500 font-semibold">
-              Estimasi ({nights} mlm × {qty})
-            </span>
-            <span className="font-black text-neutral-900">
-              {formatRupiah(subtotal)}
-            </span>
-          </div>
-
+        <div className="px-5 pb-5 pt-2">
           <button
             type="button"
-            disabled={isOutOfStock || isAdding}
-            onClick={() => onAddToCart(item, nights, qty)}
+            disabled={isOutOfStock}
+            onClick={() => onOpenBooking(item)}
             className={`w-full py-3 px-4 rounded-2xl text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer ${
               isOutOfStock
                 ? "bg-neutral-200 text-neutral-500 cursor-not-allowed"
                 : isAdded
                 ? "bg-emerald-600 text-white shadow-md"
-                : agreed
-                ? "bg-neutral-950 hover:bg-[#6F4E37] text-white shadow-sm active:scale-[0.98]"
-                : "bg-amber-100 hover:bg-amber-200 text-[#6F4E37]"
+                : "bg-neutral-950 hover:bg-[#6F4E37] text-white shadow-xs active:scale-[0.98]"
             }`}
           >
-            {isAdding ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Menambahkan...</span>
-              </>
-            ) : isAdded ? (
+            {isAdded ? (
               <>
                 <Check className="w-4 h-4" />
                 <span>Masuk Keranjang!</span>
@@ -383,17 +565,339 @@ function RentalGear3DCard({
             ) : (
               <>
                 <ShoppingBag className="w-4 h-4" />
-                <span>
-                  {isOutOfStock
-                    ? "Stok Habis"
-                    : agreed
-                    ? "Tambah ke Keranjang"
-                    : "Setujui Peraturan & Tambah"}
-                </span>
+                <span>{isOutOfStock ? "Stok Habis" : "Sewa Alat Ini"}</span>
               </>
             )}
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function RentalBookingModal({
+  item,
+  agreed,
+  onToggleAgree,
+  onOpenRules,
+  onClose,
+  onAddToCart,
+  addingId,
+}: {
+  item: RentalProduct;
+  agreed: boolean;
+  onToggleAgree: (id: string) => void;
+  onOpenRules: (item: RentalProduct) => void;
+  onClose: () => void;
+  onAddToCart: (item: RentalProduct, calc: RentalCalculationSummary) => Promise<boolean>;
+  addingId: string | null;
+}) {
+  const defaultStart = useMemo(() => addDaysIso(getTodayIso(), 1), []);
+  const defaultEnd = useMemo(() => addDaysIso(defaultStart, 1), [defaultStart]);
+
+  const [rentalStartDate, setRentalStartDate] = useState<string>(defaultStart);
+  const [rentalEndDate, setRentalEndDate] = useState<string>(defaultEnd);
+  const [pickupDate, setPickupDate] = useState<string>(defaultStart);
+  const [returnDate, setReturnDate] = useState<string>(defaultEnd);
+  const [qty, setQty] = useState<number>(1);
+
+  const minPickupIso = useMemo(
+    () => addDaysIso(rentalStartDate, -1),
+    [rentalStartDate]
+  );
+  const maxPickupIso = rentalStartDate;
+
+  const safeRentalEndIso = useMemo(() => {
+    const minEnd = addDaysIso(rentalStartDate, 1);
+    return diffDaysIso(rentalStartDate, rentalEndDate) < 1
+      ? minEnd
+      : rentalEndDate;
+  }, [rentalStartDate, rentalEndDate]);
+
+  const minReturnIso = safeRentalEndIso;
+  const maxReturnIso = useMemo(
+    () => addDaysIso(safeRentalEndIso, 1),
+    [safeRentalEndIso]
+  );
+
+  const handleRentalStartChange = (nextStart: string) => {
+    if (!parseIsoDate(nextStart)) return;
+    setRentalStartDate(nextStart);
+
+    const minEnd = addDaysIso(nextStart, 1);
+    const nextEnd =
+      diffDaysIso(nextStart, rentalEndDate) < 1 ? minEnd : rentalEndDate;
+    setRentalEndDate(nextEnd);
+
+    const nextMinPickup = addDaysIso(nextStart, -1);
+    setPickupDate((prev) => clampIsoDate(prev, nextMinPickup, nextStart));
+    setReturnDate((prev) => clampIsoDate(prev, nextEnd, addDaysIso(nextEnd, 1)));
+  };
+
+  const handleRentalEndChange = (nextEnd: string) => {
+    if (!parseIsoDate(nextEnd)) return;
+    const minEnd = addDaysIso(rentalStartDate, 1);
+    const validEnd = diffDaysIso(rentalStartDate, nextEnd) < 1 ? minEnd : nextEnd;
+    setRentalEndDate(validEnd);
+    setReturnDate((prev) => clampIsoDate(prev, validEnd, addDaysIso(validEnd, 1)));
+  };
+
+  const handlePickupChange = (nextPickup: string) => {
+    if (!parseIsoDate(nextPickup)) return;
+    setPickupDate(clampIsoDate(nextPickup, minPickupIso, maxPickupIso));
+  };
+
+  const handleReturnChange = (nextReturn: string) => {
+    if (!parseIsoDate(nextReturn)) return;
+    setReturnDate(clampIsoDate(nextReturn, minReturnIso, maxReturnIso));
+  };
+
+  const calc = useMemo(
+    () =>
+      calculateRentalBooking(
+        item,
+        rentalStartDate,
+        safeRentalEndIso,
+        pickupDate,
+        returnDate,
+        qty
+      ),
+    [item, rentalStartDate, safeRentalEndIso, pickupDate, returnDate, qty]
+  );
+
+  const maxStock = Math.max(1, Number(item.stock) || 10);
+  const isOutOfStock = Number(item.stock) <= 0;
+  const hasConflict =
+    calc.blockedConflicts.length > 0 || calc.bookedConflicts.length > 0;
+  const isAdding = addingId === item.id;
+
+  const meta = (item.metaData || {}) as RentalMeta;
+  const blockedDatesSet = useMemo(
+    () =>
+      new Set([
+        ...(meta.unavailableDates || []),
+        ...(meta.bookedDates || []),
+      ]),
+    [meta.unavailableDates, meta.bookedDates]
+  );
+
+  const handleConfirm = async () => {
+    const ok = await onAddToCart(item, calc);
+    if (ok) {
+      onClose();
+    }
+  };
+
+  return (
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 bg-black/55 backdrop-blur-xs flex items-center justify-center p-4"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white rounded-[28px] max-w-md w-full p-5 sm:p-6 shadow-2xl border border-black/10 space-y-4 overflow-visible"
+      >
+        <div className="flex items-center justify-between gap-3 border-b border-neutral-100 pb-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-12 h-12 rounded-2xl bg-neutral-100 border border-black/[0.05] flex items-center justify-center p-1.5 shrink-0 overflow-hidden">
+              {item.image ? (
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <Package className="w-5 h-5 text-neutral-400" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <span className="text-[10px] font-extrabold text-[#6F4E37] uppercase tracking-wider">
+                Detail Sewa Alat
+              </span>
+              <h3 className="text-base font-black text-neutral-950 truncate">
+                {item.title}
+              </h3>
+              <p className="text-xs font-bold text-neutral-600">
+                {formatRupiah(item.price)}{" "}
+                <span className="font-normal text-neutral-400">/ malam</span>
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-2 rounded-full hover:bg-neutral-100 text-neutral-600 cursor-pointer shrink-0"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="rounded-2xl bg-neutral-100/80 p-3.5 space-y-3">
+          <div className="flex items-center gap-1.5 text-xs font-black text-neutral-900">
+            <Calendar className="w-4 h-4 text-[#6F4E37] shrink-0" />
+            <span>Tanggal Rental & Jadwal Ambil/Kembali</span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2.5">
+            <div>
+              <label className="block text-[11px] font-bold text-neutral-600 mb-1">
+                Mulai Sewa
+              </label>
+              <BlockedRedDateInput
+                value={rentalStartDate}
+                blockedDates={blockedDatesSet}
+                onChange={handleRentalStartChange}
+                align="left"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-neutral-600 mb-1">
+                Selesai Sewa
+              </label>
+              <BlockedRedDateInput
+                value={safeRentalEndIso}
+                min={addDaysIso(rentalStartDate, 1)}
+                blockedDates={blockedDatesSet}
+                onChange={handleRentalEndChange}
+                align="right"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2.5">
+            <div>
+              <label className="block text-[11px] font-bold text-neutral-600 mb-1">
+                Tgl Ambil (Maks H-1)
+              </label>
+              <BlockedRedDateInput
+                value={calc.pickupDate}
+                min={minPickupIso}
+                max={maxPickupIso}
+                blockedDates={blockedDatesSet}
+                onChange={handlePickupChange}
+                align="left"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-neutral-600 mb-1">
+                Tgl Kembali (Maks H+1)
+              </label>
+              <BlockedRedDateInput
+                value={calc.returnDate}
+                min={minReturnIso}
+                max={maxReturnIso}
+                blockedDates={blockedDatesSet}
+                onChange={handleReturnChange}
+                align="right"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-1 border-t border-neutral-200/70">
+            <span className="text-xs font-bold text-neutral-700">
+              Jumlah Unit (Stok {item.stock})
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={isOutOfStock}
+                onClick={() => setQty((q) => Math.max(1, q - 1))}
+                className="w-7 h-7 rounded-full bg-white text-neutral-900 text-xs font-black flex items-center justify-center shadow-2xs hover:bg-neutral-200/60 cursor-pointer disabled:opacity-40"
+              >
+                -
+              </button>
+              <span className="text-xs font-black text-neutral-900 w-5 text-center">
+                {qty}
+              </span>
+              <button
+                type="button"
+                disabled={isOutOfStock || qty >= maxStock}
+                onClick={() => setQty((q) => Math.min(maxStock, q + 1))}
+                className="w-7 h-7 rounded-full bg-white text-neutral-900 text-xs font-black flex items-center justify-center shadow-2xs hover:bg-neutral-200/60 cursor-pointer disabled:opacity-40"
+              >
+                +
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl bg-[#FAF8F5] border border-amber-900/10 p-3 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-[#6F4E37]">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              Peraturan Rental
+            </span>
+            <button
+              type="button"
+              onClick={() => onOpenRules(item)}
+              className="inline-flex items-center gap-0.5 text-[11px] font-black text-neutral-800 underline hover:text-[#6F4E37] cursor-pointer"
+            >
+              <span>Baca lengkap</span>
+              <ArrowUpRight className="w-3 h-3" />
+            </button>
+          </div>
+
+          <label className="flex items-start gap-2 text-[11px] text-neutral-700 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={agreed}
+              onChange={() => onToggleAgree(item.id)}
+              className="mt-0.5 w-3.5 h-3.5 rounded accent-[#6F4E37] cursor-pointer shrink-0"
+            />
+            <span className="font-semibold leading-snug">
+              Saya telah membaca & menyetujui peraturan sewa alat rental ini.
+            </span>
+          </label>
+        </div>
+
+        <div className="space-y-1 text-xs pt-0.5">
+          <div className="flex items-center justify-between text-neutral-600 font-semibold">
+            <span>
+              Sewa ({calc.baseNights} mlm × {qty})
+            </span>
+            <span>{formatRupiah(calc.baseSubtotal)}</span>
+          </div>
+          <div className="flex items-center justify-between pt-1.5 border-t border-neutral-100">
+            <span className="text-neutral-800 font-bold">Estimasi Total</span>
+            <span className="text-base font-black text-neutral-950">
+              {formatRupiah(calc.totalPrice)}
+            </span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          disabled={isOutOfStock || isAdding || hasConflict}
+          onClick={handleConfirm}
+          className={`w-full py-3 px-4 rounded-2xl text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            isOutOfStock || hasConflict
+              ? "bg-neutral-200 text-neutral-500 cursor-not-allowed"
+              : agreed
+              ? "bg-neutral-950 hover:bg-[#6F4E37] text-white shadow-sm active:scale-[0.98]"
+              : "bg-amber-100 hover:bg-amber-200 text-[#6F4E37]"
+          }`}
+        >
+          {isAdding ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Menambahkan...</span>
+            </>
+          ) : (
+            <>
+              <ShoppingBag className="w-4 h-4" />
+              <span>
+                {isOutOfStock
+                  ? "Stok Habis"
+                  : hasConflict
+                  ? "Tanggal Tidak Tersedia"
+                  : agreed
+                  ? "Tambah ke Keranjang"
+                  : "Setujui Peraturan & Tambah"}
+              </span>
+            </>
+          )}
+        </button>
       </div>
     </div>
   );
@@ -405,6 +909,8 @@ export default function CatalogPage() {
   const [selectedCategory, setSelectedCategory] =
     useState<RentalCategoryKey>("ALL");
   const [agreedIds, setAgreedIds] = useState<Record<string, boolean>>({});
+  const [bookingModalProduct, setBookingModalProduct] =
+    useState<RentalProduct | null>(null);
   const [rulesModalProduct, setRulesModalProduct] =
     useState<RentalProduct | null>(null);
   const [addingId, setAddingId] = useState<string | null>(null);
@@ -418,7 +924,7 @@ export default function CatalogPage() {
     setBannerMsg({ type, text });
     setTimeout(() => {
       setBannerMsg((prev) => (prev?.text === text ? null : prev));
-    }, 3200);
+    }, 3400);
   };
 
   useEffect(() => {
@@ -436,7 +942,8 @@ export default function CatalogPage() {
           ? data
           : [];
         const onlyRental = rawList.filter(
-          (p: RentalProduct) => String(p.category || "").toUpperCase() === "RENTAL"
+          (p: RentalProduct) =>
+            String(p.category || "").toUpperCase() === "RENTAL"
         );
         if (active) {
           setItems(onlyRental);
@@ -466,16 +973,23 @@ export default function CatalogPage() {
 
   const handleAddToCart = async (
     item: RentalProduct,
-    nights: number,
-    qty: number
-  ) => {
+    calc: RentalCalculationSummary
+  ): Promise<boolean> => {
     if (!agreedIds[item.id]) {
       setRulesModalProduct(item);
       showBanner(
         "warn",
         "Baca & centang persetujuan peraturan rental terlebih dahulu ya."
       );
-      return;
+      return false;
+    }
+
+    if (calc.blockedConflicts.length > 0 || calc.bookedConflicts.length > 0) {
+      showBanner(
+        "warn",
+        "Pilih tanggal sewa lain karena ada tanggal sewa yang tidak tersedia."
+      );
+      return false;
     }
 
     setAddingId(item.id);
@@ -485,29 +999,85 @@ export default function CatalogPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           productId: item.id,
-          quantity: qty,
-          selectedSchedule: `Rental ${nights} Malam (Disetujui)`,
+          quantity: calc.qty,
+          paxCount: calc.qty,
+          selectedSchedule: calc.scheduleLabel,
+          rentalBooking: {
+            productId: item.id,
+            rentalStartDate: calc.rentalStartDate,
+            rentalEndDate: calc.rentalEndDate,
+            pickupDate: calc.pickupDate,
+            returnDate: calc.returnDate,
+            baseNights: calc.baseNights,
+            extraChargeNights: calc.extraChargeNights,
+            totalBilledNights: calc.totalBilledNights,
+            datesToLock: calc.datesToLock,
+            scheduleLabel: calc.scheduleLabel,
+          },
         }),
       });
       const data = await res.json();
       if (res.ok) {
+        try {
+          const key = item.slug || item.id;
+          const rawSched = localStorage.getItem(
+            "alam_memanggil_selected_schedules"
+          );
+          const schedMap = rawSched ? JSON.parse(rawSched) : {};
+          schedMap[key] = calc.scheduleLabel;
+          schedMap[item.id] = calc.scheduleLabel;
+          localStorage.setItem(
+            "alam_memanggil_selected_schedules",
+            JSON.stringify(schedMap)
+          );
+
+          const rawRental = localStorage.getItem(
+            "alam_memanggil_rental_bookings"
+          );
+          const rentalMap = rawRental ? JSON.parse(rawRental) : {};
+          const bookingPayload = {
+            productId: item.id,
+            rentalStartDate: calc.rentalStartDate,
+            rentalEndDate: calc.rentalEndDate,
+            pickupDate: calc.pickupDate,
+            returnDate: calc.returnDate,
+            baseNights: calc.baseNights,
+            extraChargeNights: calc.extraChargeNights,
+            totalBilledNights: calc.totalBilledNights,
+            datesToLock: calc.datesToLock,
+            scheduleLabel: calc.scheduleLabel,
+          };
+          rentalMap[key] = bookingPayload;
+          rentalMap[item.id] = bookingPayload;
+          localStorage.setItem(
+            "alam_memanggil_rental_bookings",
+            JSON.stringify(rentalMap)
+          );
+        } catch {
+          // abaikan storage error
+        }
+
         setJustAddedId(item.id);
         showBanner(
           "success",
-          `"${item.title}" (${nights} mlm × ${qty}) berhasil ditambahkan ke keranjang.`
+          `"${item.title}" (${calc.totalBilledNights} mlm × ${calc.qty}) masuk keranjang.`
         );
         window.dispatchEvent(new Event("cart-updated"));
         setTimeout(() => {
           setJustAddedId((curr) => (curr === item.id ? null : curr));
         }, 1800);
+        return true;
       } else {
         showBanner(
           "warn",
-          data?.message || "Silakan login terlebih dahulu untuk menambah ke keranjang."
+          data?.message ||
+            "Silakan login terlebih dahulu untuk menambah ke keranjang."
         );
+        return false;
       }
     } catch {
       showBanner("warn", "Gagal menambahkan ke keranjang.");
+      return false;
     } finally {
       setAddingId(null);
     }
@@ -520,7 +1090,7 @@ export default function CatalogPage() {
   return (
     <div className="min-h-screen bg-[#F5F5F7] text-neutral-900 pb-20">
       {bannerMsg && (
-        <div className="fixed bottom-5 right-5 z-50 max-w-sm">
+        <div className="fixed bottom-5 right-5 z-[60] max-w-sm">
           <div
             className={`px-4 py-3 rounded-2xl shadow-xl backdrop-blur-xl border text-xs font-bold flex items-center gap-2.5 ${
               bannerMsg.type === "success"
@@ -545,7 +1115,9 @@ export default function CatalogPage() {
               Sewa Perlengkapan Outdoor
             </h1>
             <p className="text-sm text-neutral-600 leading-relaxed">
-              Belum punya carrier, tenda, headlamp, atau sepatu gunung? Sewa dikami aja! bisa untuk kebutuhan pendakian maupun kegiatan alam terbuka lainnya.
+              Pilih perlengkapan yang dibutuhkan, lalu tentukan tanggal sewa,
+              pengambilan (maks. H-1), dan pengembalian (maks. H+1) langsung di
+              detail sewa.
             </p>
           </div>
         </div>
@@ -587,7 +1159,7 @@ export default function CatalogPage() {
             {[1, 2, 3].map((n) => (
               <div
                 key={n}
-                className="h-96 rounded-[28px] bg-white/70 border border-black/[0.05] animate-pulse"
+                className="h-80 rounded-[26px] bg-white/70 border border-black/[0.05] animate-pulse"
               />
             ))}
           </div>
@@ -603,16 +1175,12 @@ export default function CatalogPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredItems.map((item) => (
-              <RentalGear3DCard
+              <RentalGearSimpleCard
                 key={item.id}
                 item={item}
-                agreed={Boolean(agreedIds[item.id])}
-                onToggleAgree={toggleAgree}
-                onOpenRules={(prod) => setRulesModalProduct(prod)}
-                onAddToCart={handleAddToCart}
-                addingId={addingId}
+                onOpenBooking={(prod) => setBookingModalProduct(prod)}
                 justAddedId={justAddedId}
               />
             ))}
@@ -620,8 +1188,20 @@ export default function CatalogPage() {
         )}
       </section>
 
+      {bookingModalProduct && (
+        <RentalBookingModal
+          item={bookingModalProduct}
+          agreed={Boolean(agreedIds[bookingModalProduct.id])}
+          onToggleAgree={toggleAgree}
+          onOpenRules={(prod) => setRulesModalProduct(prod)}
+          onClose={() => setBookingModalProduct(null)}
+          onAddToCart={handleAddToCart}
+          addingId={addingId}
+        />
+      )}
+
       {rulesModalProduct && (
-        <div className="fixed inset-0 z-50 bg-black/55 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[60] bg-black/55 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-[28px] max-w-lg w-full p-6 shadow-2xl border border-black/10 space-y-4 max-h-[88vh] overflow-y-auto">
             <div className="flex items-start justify-between gap-3 border-b border-neutral-100 pb-3">
               <div>
