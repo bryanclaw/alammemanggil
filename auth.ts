@@ -7,9 +7,12 @@ import { authConfig } from "./auth.config";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
   adapter: PrismaAdapter(prisma),
   providers: [
-    ...authConfig.providers.filter((p) => (p as { id?: string }).id !== "credentials"),
+    ...authConfig.providers.filter(
+      (p) => (p as { id?: string }).id !== "credentials"
+    ),
     Credentials({
       name: "Credentials",
       credentials: {
@@ -17,22 +20,36 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
+        try {
+          const rawEmail = credentials?.email;
+          const rawPassword = credentials?.password;
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string },
-        });
+          if (typeof rawEmail !== "string" || typeof rawPassword !== "string") {
+            return null;
+          }
 
-        if (!user || !user.password) return null;
+          const email = rawEmail.trim().toLowerCase();
+          if (!email || !rawPassword) return null;
 
-        const isValid = await bcrypt.compare(
-          credentials.password as string,
-          user.password
-        );
+          const user = await prisma.user.findUnique({
+            where: { email },
+          });
 
-        if (!isValid) return null;
+          if (!user || !user.password) return null;
 
-        return user;
+          const isValid = await bcrypt.compare(rawPassword, user.password);
+          if (!isValid) return null;
+
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: (user as { role?: string }).role,
+          };
+        } catch (error) {
+          console.error("[AUTH_AUTHORIZE_ERROR]", error);
+          return null;
+        }
       },
     }),
   ],

@@ -36,6 +36,16 @@ const OUTBOUND_SUBCATEGORIES = [
   "RAPELING",
   "FLYING_FOX_RAPELING",
 ];
+const RENTAL_SUBCATEGORIES = [
+  "TAS_CARRIER",
+  "ALAS_KAKI",
+  "PAKAIAN",
+  "PERLENGKAPAN_TIDUR_TENDA",
+  "PENERANGAN",
+  "LAINNYA",
+];
+
+type ProductMainCategory = "TRIP" | "OUTBOUND" | "RENTAL";
 
 const REVIEWS_STORAGE_KEY = "alam_memanggil_customer_reviews_v1";
 const REVIEWS_SYNC_EVENT = "alam_memanggil_reviews_sync_v1";
@@ -53,22 +63,22 @@ interface CropPresetOption {
 
 const CROP_PRESETS: CropPresetOption[] = [
   {
-    key: "16:9",
-    label: "Landscape 16:9",
-    layoutHint: "Banner / Galeri Lebar",
-    ratio: 16 / 9,
-  },
-  {
     key: "4:3",
-    label: "Landscape 4:3",
-    layoutHint: "Card Dokumentasi Standar",
+    label: "Katalog 4:3",
+    layoutHint: "Pas Untuk Card Katalog & E-Commerce",
     ratio: 4 / 3,
   },
   {
     key: "1:1",
     label: "Square 1:1",
-    layoutHint: "Grid Kotak / Thumbnail",
+    layoutHint: "Grid Kotak / Keranjang / Thumbnail",
     ratio: 1,
+  },
+  {
+    key: "16:9",
+    label: "Landscape 16:9",
+    layoutHint: "Banner / Galeri Lebar",
+    ratio: 16 / 9,
   },
   {
     key: "3:4",
@@ -117,6 +127,7 @@ export interface TimeTripSlot {
 }
 
 export interface ProductMeta {
+  isRecommended?: boolean;
   location?: string;
   elevation?: string;
   grade?: string;
@@ -464,16 +475,47 @@ const DEFAULT_OUTBOUND_RULES_TEMPLATE: RuleEntry[] = [
   },
 ];
 
+const DEFAULT_RENTAL_RULES_TEMPLATE: RuleEntry[] = [
+  {
+    no: 1,
+    rule: "Durasi sewa dihitung per malam (24 jam sejak waktu pengambilan/pengiriman sesuai kesepakatan).",
+  },
+  {
+    no: 2,
+    rule: "Penyewa wajib menyertakan identitas valid (KTP/SIM) serta mengecek kondisi fisik alat saat diterima bersama tim Alam Memanggil.",
+  },
+  {
+    no: 3,
+    rule: "Kerusakan, robek, patah, atau kehilangan alat selama masa sewa menjadi tanggung jawab penyewa sesuai tingkat kerusakan atau biaya penggantian.",
+  },
+  {
+    no: 4,
+    rule: "Keterlambatan pengembalian alat dikenakan denda sesuai ketentuan sewa yang berlaku.",
+  },
+  {
+    no: 5,
+    rule: "Dilarang mengubah struktur, memodifikasi, atau menyewakan kembali alat yang sedang dalam masa rental tanpa izin tertulis dari Alam Memanggil.",
+  },
+];
+
 function cloneEssentialTemplate(): EssentialEntry[] {
   return DEFAULT_ESSENTIAL_TEMPLATE.map((item) => ({ ...item }));
 }
 
-function cloneRulesTemplate(cat: "TRIP" | "OUTBOUND"): RuleEntry[] {
+function cloneRulesTemplate(cat: ProductMainCategory): RuleEntry[] {
   const source =
     cat === "OUTBOUND"
       ? DEFAULT_OUTBOUND_RULES_TEMPLATE
+      : cat === "RENTAL"
+      ? DEFAULT_RENTAL_RULES_TEMPLATE
       : DEFAULT_TRIP_RULES_TEMPLATE;
   return source.map((item) => ({ ...item }));
+}
+
+function getDefaultSubCategory(cat: ProductMainCategory): string {
+  if (cat === "OUTBOUND") return "FLYING_FOX";
+  if (cat === "RENTAL") return "TAS_CARRIER";
+  return "HIKING";
 }
 
 function fileToDataUrl(file: File): Promise<string> {
@@ -507,7 +549,7 @@ async function renderCroppedDataUrl(
   const natH = img.naturalHeight || img.height;
 
   const preset =
-    CROP_PRESETS.find((p) => p.key === presetKey) || CROP_PRESETS[1];
+    CROP_PRESETS.find((p) => p.key === presetKey) || CROP_PRESETS[0];
   const targetRatio =
     preset.ratio !== null
       ? preset.ratio
@@ -553,7 +595,7 @@ async function renderCroppedDataUrl(
   if (!ctx) return imageSrc;
 
   ctx.drawImage(img, sx, sy, cropW, cropH, 0, 0, outW, outH);
-  return canvas.toDataURL("image/jpeg", 0.9);
+  return canvas.toDataURL("image/jpeg", 0.92);
 }
 
 function extractScheduleFromNotes(notes?: string | null): string | null {
@@ -658,16 +700,18 @@ export default function AdminDashboardPage() {
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [filterCategory, setFilterCategory] = useState<
-    "ALL" | "TRIP" | "OUTBOUND"
+    "ALL" | ProductMainCategory
   >("ALL");
   const [filterSub, setFilterSub] = useState<string>("ALL");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState<"TRIP" | "OUTBOUND">("TRIP");
+  const [category, setCategory] = useState<ProductMainCategory>("TRIP");
   const [subCategory, setSubCategory] = useState("HIKING");
+  const [isRecommended, setIsRecommended] = useState(false);
   const [price, setPrice] = useState("");
+  const [stock, setStock] = useState("10");
   const [coverImage, setCoverImage] = useState("");
   const [documentationImages, setDocumentationImages] = useState<string[]>([]);
   const [documentationCaptions, setDocumentationCaptions] = useState<string[]>(
@@ -676,6 +720,7 @@ export default function AdminDashboardPage() {
   const [mapsUrl, setMapsUrl] = useState("");
   const [description, setDescription] = useState("");
 
+  const [cropTarget, setCropTarget] = useState<"COVER" | "DOCS">("DOCS");
   const [cropQueue, setCropQueue] = useState<string[]>([]);
   const [cropPreset, setCropPreset] = useState<CropPresetKey>("4:3");
   const [cropZoom, setCropZoom] = useState<number>(1);
@@ -1079,12 +1124,14 @@ export default function AdminDashboardPage() {
     showToast("Semua notifikasi admin dibersihkan.");
   };
 
-  const resetFormForAdd = (initialCat: "TRIP" | "OUTBOUND" = "TRIP") => {
+  const resetFormForAdd = (initialCat: ProductMainCategory = "TRIP") => {
     setEditingId(null);
     setTitle("");
     setCategory(initialCat);
-    setSubCategory(initialCat === "TRIP" ? "HIKING" : "FLYING_FOX");
+    setSubCategory(getDefaultSubCategory(initialCat));
+    setIsRecommended(false);
     setPrice("");
+    setStock("10");
     setCoverImage("");
     setDocumentationImages([]);
     setDocumentationCaptions([]);
@@ -1122,9 +1169,12 @@ export default function AdminDashboardPage() {
     setIsModalOpen(true);
   };
 
-  const handleCategoryChangeInModal = (nextCat: "TRIP" | "OUTBOUND") => {
+  const handleCategoryChangeInModal = (nextCat: ProductMainCategory) => {
     setCategory(nextCat);
-    setSubCategory(nextCat === "TRIP" ? "HIKING" : "FLYING_FOX");
+    setSubCategory(getDefaultSubCategory(nextCat));
+    if (nextCat !== "TRIP") {
+      setIsRecommended(false);
+    }
     if (!editingId) {
       setRulesItems(cloneRulesTemplate(nextCat));
       if (nextCat === "TRIP") {
@@ -1135,14 +1185,21 @@ export default function AdminDashboardPage() {
 
   const openEditModal = (prod: ProductItem) => {
     const meta = (prod.metaData || {}) as ProductMeta;
-    const resolvedCat: "TRIP" | "OUTBOUND" =
-      prod.category === "OUTBOUND" ? "OUTBOUND" : "TRIP";
+    const rawCat = String(prod.category || "TRIP").toUpperCase();
+    const resolvedCat: ProductMainCategory =
+      rawCat === "OUTBOUND"
+        ? "OUTBOUND"
+        : rawCat === "RENTAL"
+        ? "RENTAL"
+        : "TRIP";
 
     setEditingId(prod.id);
     setTitle(prod.title);
     setCategory(resolvedCat);
-    setSubCategory(prod.subCategory || "ALL");
+    setSubCategory(prod.subCategory || getDefaultSubCategory(resolvedCat));
+    setIsRecommended(Boolean(meta.isRecommended) && resolvedCat === "TRIP");
     setPrice(String(prod.price));
+    setStock(String(prod.stock ?? 10));
     setCoverImage(prod.image || "");
     setDocumentationImages(meta.documentationImages || []);
     setDocumentationCaptions(meta.documentationCaptions || []);
@@ -1217,11 +1274,25 @@ export default function AdminDashboardPage() {
     setIsModalOpen(true);
   };
 
+  const openCropperForImages = (
+    images: string[],
+    target: "COVER" | "DOCS",
+    defaultPreset: CropPresetKey = "4:3"
+  ) => {
+    setCropTarget(target);
+    setCropPreset(defaultPreset);
+    setCropZoom(1);
+    setCropOffsetX(0);
+    setCropOffsetY(0);
+    setCropQueue(images);
+  };
+
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const dataUrl = await fileToDataUrl(file);
-    setCoverImage(dataUrl);
+    e.target.value = "";
+    openCropperForImages([dataUrl], "COVER", "4:3");
   };
 
   const handleDocumentationUpload = async (
@@ -1230,21 +1301,22 @@ export default function AdminDashboardPage() {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
     const converted = await Promise.all(files.map(fileToDataUrl));
-    setCropZoom(1);
-    setCropOffsetX(0);
-    setCropOffsetY(0);
-    setCropQueue((prev) => [...prev, ...converted]);
     e.target.value = "";
+    openCropperForImages(converted, "DOCS", "4:3");
   };
 
   const activeCropImage = cropQueue[0] || null;
 
   const activeCropPresetObj = useMemo(
-    () => CROP_PRESETS.find((p) => p.key === cropPreset) || CROP_PRESETS[1],
+    () => CROP_PRESETS.find((p) => p.key === cropPreset) || CROP_PRESETS[0],
     [cropPreset]
   );
 
-  const appendDocumentationImage = (imgDataUrl: string) => {
+  const commitCropResult = (imgDataUrl: string) => {
+    if (cropTarget === "COVER") {
+      setCoverImage(imgDataUrl);
+      return;
+    }
     setDocumentationImages((prev) => {
       const nextIndex = prev.length + 1;
       setDocumentationCaptions((caps) => [
@@ -1266,7 +1338,7 @@ export default function AdminDashboardPage() {
         cropOffsetX,
         cropOffsetY
       );
-      appendDocumentationImage(croppedUrl);
+      commitCropResult(croppedUrl);
       setCropQueue((prev) => prev.slice(1));
       setCropZoom(1);
       setCropOffsetX(0);
@@ -1278,7 +1350,7 @@ export default function AdminDashboardPage() {
 
   const handleSkipCropCurrent = () => {
     if (!activeCropImage) return;
-    appendDocumentationImage(activeCropImage);
+    commitCropResult(activeCropImage);
     setCropQueue((prev) => prev.slice(1));
     setCropZoom(1);
     setCropOffsetX(0);
@@ -1444,7 +1516,7 @@ export default function AdminDashboardPage() {
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!coverImage) {
-      showToast("Silakan upload gambar Cover Card terlebih dahulu!");
+      showToast("Silakan upload gambar / foto produk terlebih dahulu!");
       return;
     }
 
@@ -1487,9 +1559,15 @@ export default function AdminDashboardPage() {
       category,
       subCategory,
       price: Number(price),
+      stock: Math.max(0, Number(stock) || 0),
       image: coverImage,
-      description,
+      description:
+        description.trim() ||
+        (category === "RENTAL"
+          ? `Sewa ${title} per malam di Alam Memanggil.`
+          : description),
       metaData: {
+        isRecommended: category === "TRIP" ? Boolean(isRecommended) : false,
         location,
         elevation,
         grade,
@@ -1523,7 +1601,7 @@ export default function AdminDashboardPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        showToast(data.message || "Paket tersimpan!");
+        showToast(data.message || "Paket / alat rental tersimpan!");
         setIsModalOpen(false);
         resetFormForAdd("TRIP");
         fetchProducts();
@@ -1708,7 +1786,8 @@ export default function AdminDashboardPage() {
   };
 
   const filteredProducts = products.filter((p) => {
-    const matchCat = filterCategory === "ALL" || p.category === filterCategory;
+    const pCat = String(p.category || "").toUpperCase();
+    const matchCat = filterCategory === "ALL" || pCat === filterCategory;
     const matchSub =
       filterSub === "ALL" || (p.subCategory || "ALL") === filterSub;
     return matchCat && matchSub;
@@ -1741,6 +1820,15 @@ export default function AdminDashboardPage() {
       currency: "IDR",
       minimumFractionDigits: 0,
     }).format(num);
+
+  const subFilterOptions =
+    filterCategory === "TRIP"
+      ? TRIP_SUBCATEGORIES
+      : filterCategory === "OUTBOUND"
+      ? OUTBOUND_SUBCATEGORIES
+      : filterCategory === "RENTAL"
+      ? ["ALL", ...RENTAL_SUBCATEGORIES]
+      : [];
 
   return (
     <div className="min-h-screen bg-[#F7F5F2] text-neutral-900">
@@ -1873,7 +1961,7 @@ export default function AdminDashboardPage() {
           <div className="bg-white rounded-3xl border border-neutral-200/80 p-6 shadow-sm space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex flex-wrap gap-2">
-                {(["ALL", "TRIP", "OUTBOUND"] as const).map((cat) => (
+                {(["ALL", "TRIP", "OUTBOUND", "RENTAL"] as const).map((cat) => (
                   <button
                     key={cat}
                     type="button"
@@ -1891,7 +1979,9 @@ export default function AdminDashboardPage() {
                       ? "Semua Kategori"
                       : cat === "TRIP"
                       ? "Open Trip"
-                      : "Outbound"}
+                      : cat === "OUTBOUND"
+                      ? "Outbound"
+                      : "Rental Gear"}
                   </button>
                 ))}
               </div>
@@ -1906,16 +1996,18 @@ export default function AdminDashboardPage() {
               </button>
             </div>
 
-            {filterCategory !== "ALL" && (
+            {filterCategory !== "ALL" && subFilterOptions.length > 0 && (
               <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-neutral-100">
                 <span className="text-[11px] font-bold text-neutral-400 mr-1">
-                  Sub-Kategori {filterCategory === "TRIP" ? "Open Trip" : "Outbound"}
+                  Sub-Kategori{" "}
+                  {filterCategory === "TRIP"
+                    ? "Open Trip"
+                    : filterCategory === "OUTBOUND"
+                    ? "Outbound"
+                    : "Rental Gear"}
                   :
                 </span>
-                {(filterCategory === "TRIP"
-                  ? TRIP_SUBCATEGORIES
-                  : OUTBOUND_SUBCATEGORIES
-                ).map((sub) => (
+                {subFilterOptions.map((sub) => (
                   <button
                     key={sub}
                     type="button"
@@ -1938,61 +2030,87 @@ export default function AdminDashboardPage() {
               </div>
             ) : filteredProducts.length === 0 ? (
               <div className="text-center py-12 text-xs text-neutral-500">
-                Belum ada paket pada kategori ini. Klik{" "}
+                Belum ada item pada kategori ini. Klik{" "}
                 <strong>+ Tambah Paket Baru</strong> untuk mulai mengisi etalase.
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredProducts.map((prod) => (
-                  <div
-                    key={prod.id}
-                    className="border border-neutral-200 rounded-2xl p-4 bg-neutral-50/40 flex flex-col justify-between gap-4 hover:border-[#6F4E37]/40 transition"
-                  >
-                    <div>
-                      {prod.image && (
-                        <img
-                          src={prod.image}
-                          alt={prod.title}
-                          className="w-full h-36 object-cover rounded-xl mb-3 border border-neutral-200"
-                        />
-                      )}
-                      <div className="flex items-center justify-between gap-2 mb-2">
-                        <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-amber-100 text-[#6F4E37]">
-                          {prod.category} •{" "}
-                          {(prod.subCategory || "ALL").replace(/_/g, " ")}
-                        </span>
-                      </div>
-                      <h3 className="text-sm font-black text-neutral-900">
-                        {prod.title}
-                      </h3>
-                      <p className="text-base font-black text-emerald-700 mt-1">
-                        {formatRupiah(prod.price)}
-                      </p>
-                      <p className="text-xs text-neutral-500 mt-2 line-clamp-2">
-                        {prod.description}
-                      </p>
-                    </div>
+                {filteredProducts.map((prod) => {
+                  const isRental =
+                    String(prod.category || "").toUpperCase() === "RENTAL";
+                  const isRecTrip =
+                    String(prod.category || "").toUpperCase() === "TRIP" &&
+                    Boolean(prod.metaData?.isRecommended);
 
-                    <div className="flex items-center justify-end gap-2 pt-3 border-t border-neutral-200/70">
-                      <button
-                        type="button"
-                        onClick={() => openEditModal(prod)}
-                        className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-full bg-white border border-neutral-300 hover:bg-neutral-100 cursor-pointer"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                        <span>Edit</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteProduct(prod.id)}
-                        className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-full bg-red-50 text-red-600 hover:bg-red-100 cursor-pointer"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>Hapus</span>
-                      </button>
+                  return (
+                    <div
+                      key={prod.id}
+                      className="border border-neutral-200 rounded-2xl p-4 bg-neutral-50/40 flex flex-col justify-between gap-4 hover:border-[#6F4E37]/40 transition"
+                    >
+                      <div>
+                        {prod.image && (
+                          <div className="relative w-full h-36 rounded-xl mb-3 border border-neutral-200 bg-neutral-100 flex items-center justify-center p-2 overflow-hidden">
+                            <img
+                              src={prod.image}
+                              alt={prod.title}
+                              className="w-full h-full object-contain"
+                            />
+                            {isRecTrip && (
+                              <span className="absolute top-2 right-2 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-400 text-neutral-950 shadow-xs">
+                                <Star className="w-3 h-3 fill-neutral-950" />
+                                Rekomendasi Home
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-amber-100 text-[#6F4E37]">
+                            {prod.category} •{" "}
+                            {(prod.subCategory || "ALL").replace(/_/g, " ")}
+                          </span>
+                          {isRental && (
+                            <span className="text-[10px] font-bold text-neutral-500">
+                              Stok: {prod.stock}
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="text-sm font-black text-neutral-900">
+                          {prod.title}
+                        </h3>
+                        <p className="text-base font-black text-emerald-700 mt-1">
+                          {formatRupiah(prod.price)}
+                          {isRental ? (
+                            <span className="text-[11px] font-bold text-neutral-500 ml-1">
+                              / malam
+                            </span>
+                          ) : null}
+                        </p>
+                        <p className="text-xs text-neutral-500 mt-2 line-clamp-2">
+                          {prod.description}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-end gap-2 pt-3 border-t border-neutral-200/70">
+                        <button
+                          type="button"
+                          onClick={() => openEditModal(prod)}
+                          className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-full bg-white border border-neutral-300 hover:bg-neutral-100 cursor-pointer"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteProduct(prod.id)}
+                          className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-full bg-red-50 text-red-600 hover:bg-red-100 cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Hapus</span>
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -2059,7 +2177,9 @@ export default function AdminDashboardPage() {
                     value={newDiscountValue}
                     onChange={(e) => setNewDiscountValue(e.target.value)}
                     placeholder={
-                      newDiscountType === "PERCENTAGE" ? "Contoh: 5" : "Contoh: 25000"
+                      newDiscountType === "PERCENTAGE"
+                        ? "Contoh: 5"
+                        : "Contoh: 25000"
                     }
                     className="w-full bg-white border border-neutral-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#6F4E37]/30"
                   />
@@ -2713,7 +2833,7 @@ export default function AdminDashboardPage() {
           >
             <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
               <h2 className="text-base font-black text-neutral-900">
-                {editingId ? "Edit Paket & Harga" : "Tambah Paket Baru"}
+                {editingId ? "Edit Paket / Alat Rental" : "Tambah Paket Baru"}
               </h2>
               <button
                 type="button"
@@ -2733,13 +2853,14 @@ export default function AdminDashboardPage() {
                   value={category}
                   onChange={(e) =>
                     handleCategoryChangeInModal(
-                      e.target.value as "TRIP" | "OUTBOUND"
+                      e.target.value as ProductMainCategory
                     )
                   }
                   className="w-full border border-neutral-300 rounded-xl px-3 py-2 text-xs"
                 >
                   <option value="TRIP">Open Trip</option>
                   <option value="OUTBOUND">Outbound</option>
+                  <option value="RENTAL">Rental Gear Outdoor</option>
                 </select>
               </div>
 
@@ -2754,7 +2875,9 @@ export default function AdminDashboardPage() {
                 >
                   {(category === "TRIP"
                     ? TRIP_SUBCATEGORIES
-                    : OUTBOUND_SUBCATEGORIES
+                    : category === "OUTBOUND"
+                    ? OUTBOUND_SUBCATEGORIES
+                    : RENTAL_SUBCATEGORIES
                   ).map((sub) => (
                     <option key={sub} value={sub}>
                       {sub.replace(/_/g, " ")}
@@ -2764,10 +2887,38 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {category === "TRIP" && (
+              <label className="flex items-center justify-between gap-3 bg-amber-50/90 border border-amber-200 rounded-2xl px-4 py-3 cursor-pointer hover:bg-amber-100/70 transition">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-[#6F4E37] text-white flex items-center justify-center shrink-0">
+                    <Star className="w-4 h-4 fill-amber-300 text-amber-300" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-neutral-900">
+                      Tampilkan di Section Rekomendasi Trip (Home)
+                    </p>
+                    <p className="text-[11px] text-neutral-600">
+                      Centang agar paket Open Trip ini muncul di bar berjalan Rekomendasi Trip halaman utama
+                    </p>
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={isRecommended}
+                  onChange={(e) => setIsRecommended(e.target.checked)}
+                  className="w-4 h-4 accent-[#6F4E37] rounded cursor-pointer shrink-0"
+                />
+              </label>
+            )}
+
+            <div
+              className={`grid grid-cols-1 ${
+                category === "RENTAL" ? "sm:grid-cols-3" : "sm:grid-cols-2"
+              } gap-3`}
+            >
               <div>
                 <label className="block text-xs font-bold mb-1">
-                  Judul Paket *
+                  {category === "RENTAL" ? "Nama Alat Rental *" : "Judul Paket *"}
                 </label>
                 <input
                   type="text"
@@ -2777,14 +2928,18 @@ export default function AdminDashboardPage() {
                   placeholder={
                     category === "TRIP"
                       ? "Contoh: Open Trip Gunung Gede"
-                      : "Contoh: Jasa Pemasangan Flying Fox"
+                      : category === "OUTBOUND"
+                      ? "Contoh: Jasa Pemasangan Flying Fox"
+                      : "Contoh: Carrier Osprey 60L"
                   }
                   className="w-full border border-neutral-300 rounded-xl px-3 py-2 text-xs"
                 />
               </div>
               <div>
                 <label className="block text-xs font-bold mb-1">
-                  Harga / Pax (Rp) *
+                  {category === "RENTAL"
+                    ? "Harga per Malam (Rp) *"
+                    : "Harga / Pax (Rp) *"}
                 </label>
                 <input
                   type="number"
@@ -2792,20 +2947,44 @@ export default function AdminDashboardPage() {
                   min={0}
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  placeholder={category === "TRIP" ? "650000" : "5000000"}
+                  placeholder={
+                    category === "TRIP"
+                      ? "650000"
+                      : category === "OUTBOUND"
+                      ? "5000000"
+                      : "35000"
+                  }
                   className="w-full border border-neutral-300 rounded-xl px-3 py-2 text-xs"
                 />
               </div>
+              {category === "RENTAL" && (
+                <div>
+                  <label className="block text-xs font-bold mb-1">
+                    Stok Unit Tersedia *
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min={0}
+                    value={stock}
+                    onChange={(e) => setStock(e.target.value)}
+                    placeholder="10"
+                    className="w-full border border-neutral-300 rounded-xl px-3 py-2 text-xs"
+                  />
+                </div>
+              )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-neutral-50 p-4 rounded-2xl border border-neutral-200">
-              <div className="space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-neutral-50/90 p-4 rounded-2xl border border-neutral-200/80">
+              <div className="space-y-2.5">
                 <label className="block text-xs font-black text-neutral-800">
-                  1. Gambar Cover Card (Grid & Booking) *
+                  {category === "RENTAL"
+                    ? "Foto Produk Rental *"
+                    : "1. Gambar Cover Card *"}
                 </label>
-                <label className="flex items-center justify-center gap-2 border-2 border-dashed border-neutral-300 hover:border-[#6F4E37] rounded-xl p-3 text-xs font-bold text-neutral-600 cursor-pointer bg-white">
+                <label className="flex items-center justify-center gap-2 border border-dashed border-neutral-300 hover:border-[#6F4E37] rounded-2xl p-3 text-xs font-bold text-neutral-700 cursor-pointer bg-white transition">
                   <Upload className="w-4 h-4 text-[#6F4E37]" />
-                  <span>Pilih File Cover Card</span>
+                  <span>Pilih & Crop Foto Produk</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -2814,80 +2993,91 @@ export default function AdminDashboardPage() {
                   />
                 </label>
                 {coverImage && (
-                  <div className="relative mt-2">
-                    <img
-                      src={coverImage}
-                      alt="Preview Cover"
-                      className="w-full h-32 object-cover rounded-xl border border-neutral-200"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setCoverImage("")}
-                      className="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-full cursor-pointer"
-                    >
-                      Hapus
-                    </button>
+                  <div className="relative mt-2 rounded-2xl border border-black/[0.07] bg-white p-2 shadow-2xs">
+                    <div className="w-full h-36 rounded-xl bg-neutral-100/80 flex items-center justify-center overflow-hidden">
+                      <img
+                        src={coverImage}
+                        alt="Preview Cover"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <div className="flex items-center justify-end gap-1.5 mt-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          openCropperForImages([coverImage], "COVER", "4:3")
+                        }
+                        className="inline-flex items-center gap-1 bg-neutral-900 hover:bg-[#6F4E37] text-white text-[10px] font-bold px-2.5 py-1 rounded-full cursor-pointer transition"
+                      >
+                        <Crop className="w-3 h-3" />
+                        <span>Crop Ulang</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCoverImage("")}
+                        className="bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-full cursor-pointer transition"
+                      >
+                        Hapus
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between gap-2">
+              {category !== "RENTAL" && (
+                <div className="space-y-2">
                   <label className="block text-xs font-black text-neutral-800">
                     2. Gambar Dokumentasi (Galeri Detail)
                   </label>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#6F4E37] bg-amber-100 px-2 py-0.5 rounded-full">
-                    <Crop className="w-3 h-3" /> Crop Layout
-                  </span>
-                </div>
-                <label className="flex items-center justify-center gap-2 border-2 border-dashed border-neutral-300 hover:border-[#6F4E37] rounded-xl p-3 text-xs font-bold text-neutral-600 cursor-pointer bg-white">
-                  <Upload className="w-4 h-4 text-[#6F4E37]" />
-                  <span>Pilih & Crop Foto Dokumentasi</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleDocumentationUpload}
-                    className="hidden"
-                  />
-                </label>
-                {documentationImages.length > 0 && (
-                  <div className="space-y-2 mt-2">
-                    {documentationImages.map((imgUrl, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-center gap-2 bg-white p-1.5 rounded-xl border border-neutral-200"
-                      >
-                        <img
-                          src={imgUrl}
-                          alt={`Dok ${idx + 1}`}
-                          className="w-14 h-12 object-cover rounded-lg shrink-0"
-                        />
-                        <input
-                          type="text"
-                          value={documentationCaptions[idx] || ""}
-                          onChange={(e) =>
-                            setDocumentationCaptions((prev) =>
-                              prev.map((c, i) =>
-                                i === idx ? e.target.value : c
-                              )
-                            )
-                          }
-                          placeholder="Judul / caption dokumentasi..."
-                          className="flex-1 border border-neutral-200 rounded-lg px-2 py-1 text-[11px]"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeDocumentationImage(idx)}
-                          className="p-1 text-red-600 hover:bg-red-50 rounded-lg cursor-pointer"
+                  <label className="flex items-center justify-center gap-2 border-2 border-dashed border-neutral-300 hover:border-[#6F4E37] rounded-xl p-3 text-xs font-bold text-neutral-600 cursor-pointer bg-white">
+                    <Upload className="w-4 h-4 text-[#6F4E37]" />
+                    <span>Pilih & Crop Foto Dokumentasi</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleDocumentationUpload}
+                      className="hidden"
+                    />
+                  </label>
+                  {documentationImages.length > 0 && (
+                    <div className="space-y-2 mt-2">
+                      {documentationImages.map((imgUrl, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-2 bg-white p-1.5 rounded-xl border border-neutral-200"
                         >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                          <img
+                            src={imgUrl}
+                            alt={`Dok ${idx + 1}`}
+                            className="w-14 h-12 object-cover rounded-lg shrink-0"
+                          />
+                          <input
+                            type="text"
+                            value={documentationCaptions[idx] || ""}
+                            onChange={(e) =>
+                              setDocumentationCaptions((prev) =>
+                                prev.map((c, i) =>
+                                  i === idx ? e.target.value : c
+                                )
+                              )
+                            }
+                            placeholder="Judul / caption dokumentasi..."
+                            className="flex-1 border border-neutral-200 rounded-lg px-2 py-1 text-[11px]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeDocumentationImage(idx)}
+                            className="p-1 text-red-600 hover:bg-red-50 rounded-lg cursor-pointer"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {category === "TRIP" && (
@@ -2910,13 +3100,20 @@ export default function AdminDashboardPage() {
               <label className="block text-xs font-bold mb-1">
                 {category === "TRIP"
                   ? "Information — Deskripsi Singkat *"
+                  : category === "RENTAL"
+                  ? "Catatan / Spesifikasi Alat Rental"
                   : "Deskripsi Layanan Outbound *"}
               </label>
               <textarea
                 rows={2}
-                required
+                required={category !== "RENTAL"}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                placeholder={
+                  category === "RENTAL"
+                    ? "Contoh: Kapasitas 60L, include raincover, kondisi bersih & terawat"
+                    : undefined
+                }
                 className="w-full border border-neutral-300 rounded-xl px-3 py-2 text-xs"
               />
             </div>
@@ -3584,7 +3781,9 @@ export default function AdminDashboardPage() {
             <div className="space-y-2 bg-neutral-50 p-4 rounded-2xl border border-neutral-200">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="text-xs font-black text-neutral-800">
-                  Rules / Syarat & Ketentuan (No & Ketentuan)
+                  {category === "RENTAL"
+                    ? "Peraturan Rental / Syarat & Ketentuan (No & Ketentuan)"
+                    : "Rules / Syarat & Ketentuan (No & Ketentuan)"}
                 </span>
                 <div className="flex items-center gap-1.5">
                   {!editingId && (
@@ -3639,7 +3838,11 @@ export default function AdminDashboardPage() {
                       onChange={(e) =>
                         updateRuleRow(idx, "rule", e.target.value)
                       }
-                      placeholder="Contoh: Peserta wajib dalam kondisi sehat jasmani & rohani"
+                      placeholder={
+                        category === "RENTAL"
+                          ? "Contoh: Kerusakan atau kehilangan alat menjadi tanggung jawab penyewa"
+                          : "Contoh: Peserta wajib dalam kondisi sehat jasmani & rohani"
+                      }
                       className="w-full border border-neutral-300 rounded-lg px-3 py-1.5 text-xs bg-white"
                     />
                   </div>
@@ -3677,35 +3880,38 @@ export default function AdminDashboardPage() {
       )}
 
       {activeCropImage && (
-        <div className="fixed inset-0 z-60 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-neutral-200 space-y-5 max-h-[92vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+        <div className="fixed inset-0 z-60 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white/95 backdrop-blur-2xl rounded-[32px] max-w-2xl w-full p-6 shadow-2xl border border-black/[0.08] space-y-5 max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-neutral-100 pb-3.5">
               <div>
-                <h3 className="text-sm font-black text-neutral-900 flex items-center gap-2">
+                <h3 className="text-sm font-black text-neutral-950 flex items-center gap-2">
                   <Crop className="w-4 h-4 text-[#6F4E37]" />
                   <span>
-                    Crop Foto Dokumentasi{" "}
-                    {cropQueue.length > 1
-                      ? `(Sisa ${cropQueue.length} foto)`
-                      : ""}
+                    {cropTarget === "COVER"
+                      ? "Crop Foto Produk"
+                      : `Crop Foto Dokumentasi ${
+                          cropQueue.length > 1
+                            ? `(Sisa ${cropQueue.length} foto)`
+                            : ""
+                        }`}
                   </span>
                 </h3>
                 <p className="text-[11px] text-neutral-500 mt-0.5">
-                  Pilih rasio bingkai yang sesuai dengan layout tampilan dokumentasi
+                  Atur bingkai & posisi alat agar terlihat utuh dan jelas di katalog
                 </p>
               </div>
               <button
                 type="button"
                 onClick={handleCancelCropQueue}
-                className="p-1.5 rounded-full hover:bg-neutral-100 cursor-pointer"
+                className="p-2 rounded-full bg-neutral-100 hover:bg-neutral-200 cursor-pointer transition"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-[11px] font-black uppercase tracking-wider text-neutral-600">
-                Pilih Rasio Layout
+              <label className="block text-[11px] font-black uppercase tracking-wider text-neutral-500">
+                Rasio Bingkai E-Commerce
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {CROP_PRESETS.map((preset) => {
@@ -3719,16 +3925,16 @@ export default function AdminDashboardPage() {
                         setCropOffsetX(0);
                         setCropOffsetY(0);
                       }}
-                      className={`text-left p-2.5 rounded-xl border transition cursor-pointer ${
+                      className={`text-left p-2.5 rounded-2xl border transition cursor-pointer ${
                         selected
-                          ? "bg-[#6F4E37] text-white border-[#6F4E37] shadow"
-                          : "bg-neutral-50 hover:bg-neutral-100 text-neutral-800 border-neutral-200"
+                          ? "bg-neutral-950 text-white border-neutral-950 shadow-sm"
+                          : "bg-neutral-100/80 hover:bg-neutral-200/70 text-neutral-800 border-transparent"
                       }`}
                     >
                       <p className="text-xs font-black">{preset.label}</p>
                       <p
                         className={`text-[10px] mt-0.5 ${
-                          selected ? "text-amber-100" : "text-neutral-500"
+                          selected ? "text-neutral-300" : "text-neutral-500"
                         }`}
                       >
                         {preset.layoutHint}
@@ -3739,7 +3945,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            <div className="bg-neutral-900 rounded-2xl p-4 flex flex-col items-center justify-center min-h-64">
+            <div className="bg-[#F2F2F7] rounded-[24px] p-4 flex flex-col items-center justify-center min-h-64 border border-black/[0.05]">
               <div
                 style={{
                   aspectRatio:
@@ -3747,26 +3953,26 @@ export default function AdminDashboardPage() {
                       ? String(activeCropPresetObj.ratio)
                       : "4 / 3",
                 }}
-                className="relative w-full max-w-md max-h-72 overflow-hidden rounded-xl border-2 border-amber-400 bg-black flex items-center justify-center"
+                className="relative w-full max-w-md max-h-72 overflow-hidden rounded-2xl border-2 border-[#6F4E37] bg-white shadow-inner flex items-center justify-center"
               >
                 <img
                   src={activeCropImage}
-                  alt="Preview Crop Dokumentasi"
+                  alt="Preview Crop Produk"
                   style={{
                     transform: `translate(${cropOffsetX * 0.45}%, ${
                       cropOffsetY * 0.45
                     }%) scale(${cropZoom})`,
                   }}
-                  className="w-full h-full object-cover transition-transform duration-75 select-none"
+                  className="w-full h-full object-contain transition-transform duration-75 select-none"
                 />
               </div>
-              <span className="text-[11px] text-neutral-300 mt-2.5 font-medium">
-                Layout terpilih: <strong>{activeCropPresetObj.label}</strong> (
-                {activeCropPresetObj.layoutHint})
+              <span className="text-[11px] text-neutral-600 mt-2.5 font-semibold">
+                Bingkai: <strong>{activeCropPresetObj.label}</strong> •{" "}
+                {activeCropPresetObj.layoutHint}
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-neutral-50 p-3.5 rounded-2xl border border-neutral-200">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-neutral-100/80 p-3.5 rounded-2xl">
               <div>
                 <label className="flex items-center justify-between text-[11px] font-bold text-neutral-700 mb-1">
                   <span className="inline-flex items-center gap-1">
@@ -3828,7 +4034,7 @@ export default function AdminDashboardPage() {
               <button
                 type="button"
                 onClick={handleSkipCropCurrent}
-                className="px-4 py-2 rounded-full text-xs font-bold bg-neutral-100 hover:bg-neutral-200 text-neutral-700 cursor-pointer"
+                className="px-4 py-2 rounded-full text-xs font-bold bg-neutral-100 hover:bg-neutral-200 text-neutral-800 cursor-pointer transition"
               >
                 Pakai Foto Asli
               </button>
@@ -3837,7 +4043,7 @@ export default function AdminDashboardPage() {
                 <button
                   type="button"
                   onClick={handleCancelCropQueue}
-                  className="px-4 py-2 rounded-full text-xs font-bold bg-neutral-100 hover:bg-neutral-200 text-neutral-700 cursor-pointer"
+                  className="px-4 py-2 rounded-full text-xs font-bold bg-neutral-100 hover:bg-neutral-200 text-neutral-800 cursor-pointer transition"
                 >
                   Batal
                 </button>
@@ -3845,14 +4051,14 @@ export default function AdminDashboardPage() {
                   type="button"
                   disabled={applyingCrop}
                   onClick={handleApplyCrop}
-                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white shadow cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-black bg-neutral-950 hover:bg-[#6F4E37] text-white shadow-sm cursor-pointer transition"
                 >
                   {applyingCrop ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   ) : (
                     <Crop className="w-3.5 h-3.5" />
                   )}
-                  <span>Terapkan Crop & Tambah</span>
+                  <span>Terapkan Crop</span>
                 </button>
               </div>
             </div>
