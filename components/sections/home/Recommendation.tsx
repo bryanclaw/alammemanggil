@@ -115,7 +115,7 @@ export default function Recommendation() {
     let active = true;
     async function loadRecommendedTrips() {
       try {
-        const res = await fetch("/api/admin/products", { cache: "no-store" });
+        const res = await fetch("/api/catalog?category=TRIP", { cache: "no-store" });
         const data = await res.json();
         const allProducts: ApiProductItem[] = data.products || [];
 
