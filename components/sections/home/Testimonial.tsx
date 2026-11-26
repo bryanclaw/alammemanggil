@@ -42,7 +42,7 @@ export default function Testimonial() {
 
   return (
     <section
-      className="relative overflow-hidden bg-cover bg-center py-6 flex flex-col items-center justify-center antialiased w-full"
+      className="relative overflow-hidden bg-cover bg-center py-6 md:py-8 flex flex-col items-center justify-center antialiased w-full"
       style={{
         backgroundImage: "url('/images/BROMO2.jpeg')",
       }}
@@ -50,8 +50,8 @@ export default function Testimonial() {
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
 
-      {/* Main Container - Tinggi Dioptimalkan Agar Presisi Di Layar */}
-      <div className="relative z-10 w-full max-w-3xl h-[260px] px-4 flex items-center justify-center mx-auto">
+      {/* Main Container - Fleksibel di HP, Presisi di Desktop */}
+      <div className="relative z-10 w-full max-w-3xl min-h-[360px] md:h-[260px] px-3.5 sm:px-4 flex items-center justify-center mx-auto">
         <Swiper
           modules={[Autoplay, EffectFade]}
           effect="fade"
@@ -71,53 +71,51 @@ export default function Testimonial() {
           className="h-full w-full"
         >
           {testimonials.map((item) => (
-            <SwiperSlide key={item.id}>
-              {/* Card Container - Diperpendek Menjadi h-[240px] */}
-              <div className="mx-auto h-[240px] w-full rounded-[28px] border border-white/30 bg-white/40 backdrop-blur-2xl overflow-hidden">
-                {/* Grid Komposisi - Padding Dioptimalkan */}
-                <div className="grid h-full grid-cols-[1.4fr_220px] gap-3 p-3.5 items-center">
-                  
-                  {/* SISI KIRI: Teks & Profil */}
-                  <div className="flex h-full flex-col justify-between p-2 text-left">
+            <SwiperSlide key={item.id} className="h-auto md:h-full">
+              {/* Card Container */}
+              <div className="mx-auto min-h-[350px] md:h-[240px] w-full rounded-[24px] md:rounded-[28px] border border-white/30 bg-white/55 md:bg-white/40 backdrop-blur-2xl overflow-hidden shadow-lg">
+                {/* Grid Komposisi */}
+                <div className="grid h-full grid-cols-1 md:grid-cols-[1.4fr_220px] gap-3 p-3 sm:p-3.5 items-center">
+                  {/* SISI KIRI / ATAS: Teks & Profil */}
+                  <div className="flex h-full flex-col justify-between p-1.5 sm:p-2 text-left">
                     <div>
                       {/* Quote Mark Besar Gaya Apple */}
-                      <div className="text-6xl font-serif leading-none text-black  select-none mb-0.5">
+                      <div className="text-4xl md:text-6xl font-serif leading-none text-black select-none mb-0.5">
                         “
                       </div>
 
                       {/* Teks Testimoni */}
-                      <p className="text-[13px] md:text-[14px] font-medium leading-relaxed text-neutral-950 tracking-tight line-clamp-4">
+                      <p className="text-xs sm:text-[13px] md:text-[14px] font-medium leading-relaxed text-neutral-950 tracking-tight line-clamp-5 md:line-clamp-4">
                         {item.text}
                       </p>
                     </div>
 
                     {/* Profil User */}
-                    <div className="flex items-center gap-3 mt-auto pt-2">
+                    <div className="flex items-center gap-2.5 sm:gap-3 mt-3 md:mt-auto pt-2">
                       <img
                         src={item.avatar}
                         alt={item.name}
-                        className="h-9 w-9 rounded-full border-2 border-white/80 bg-white/20 object-cover shadow-sm"
+                        className="h-8 w-8 sm:h-9 sm:w-9 rounded-full border-2 border-white/80 bg-white/20 object-cover shadow-sm shrink-0"
                       />
                       <div className="min-w-0">
-                        <h3 className="truncate text-sm font-bold text-neutral-950 tracking-tight">
+                        <h3 className="truncate text-xs sm:text-sm font-bold text-neutral-950 tracking-tight">
                           {item.name}
                         </h3>
-                        <p className="truncate text-[11px] font-semibold text-neutral-700">
+                        <p className="truncate text-[10px] sm:text-[11px] font-semibold text-neutral-700">
                           {item.role}
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  {/* SISI KANAN: Gambar Besar Bento Style */}
-                  <div className="relative h-full w-full overflow-hidden rounded-[20px] shadow-sm border border-white/20">
+                  {/* SISI KANAN / BAWAH: Gambar Besar Bento Style */}
+                  <div className="relative h-36 sm:h-40 md:h-full w-full overflow-hidden rounded-[18px] md:rounded-[20px] shadow-sm border border-white/20">
                     <img
                       src={item.image}
                       alt={item.name}
                       className="h-full w-full object-cover transition-transform duration-[1200ms] scale-100"
                     />
                   </div>
-
                 </div>
               </div>
             </SwiperSlide>
@@ -125,17 +123,18 @@ export default function Testimonial() {
         </Swiper>
       </div>
 
-      {/* Apple Style Premium Pill Indicators - Padding Disesuaikan Lebih Tipis */}
+      {/* Apple Style Premium Pill Indicators */}
       <div className="relative z-10 mt-4 flex justify-center">
         <div className="flex items-center p-1.5 bg-black/20 backdrop-blur-xl rounded-full gap-1.5 border border-white/10 shadow-lg">
           {testimonials.map((_, index) => (
             <button
               key={index}
+              type="button"
               onClick={() => swiperRef.current?.slideToLoop(index)}
-              className={`h-6 rounded-full transition-all duration-500 cubic-bezier(0.25, 1, 0.5, 1) cursor-pointer ${
+              className={`h-5 sm:h-6 rounded-full transition-all duration-500 cubic-bezier(0.25, 1, 0.5, 1) cursor-pointer ${
                 activeIndex === index
-                  ? "w-16 bg-white shadow-[0_2px_8px_rgba(255,255,255,0.4)]"
-                  : "w-8 bg-white/40 hover:bg-white/70 hover:scale-110 active:scale-95"
+                  ? "w-11 sm:w-16 bg-white shadow-[0_2px_8px_rgba(255,255,255,0.4)]"
+                  : "w-6 sm:w-8 bg-white/40 hover:bg-white/70 hover:scale-110 active:scale-95"
               }`}
               aria-label={`Go to slide ${index + 1}`}
             />

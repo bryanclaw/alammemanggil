@@ -193,7 +193,7 @@ export default function DynamicOpenTripDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white text-sm font-bold text-neutral-500">
+      <div className="min-h-screen flex items-center justify-center bg-white text-sm font-bold text-neutral-500 px-4 text-center">
         Memuat detail paket Open Trip...
       </div>
     );
@@ -201,7 +201,7 @@ export default function DynamicOpenTripDetail() {
 
   if (!product) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white text-sm font-bold text-neutral-700">
+      <div className="min-h-screen flex items-center justify-center bg-white text-sm font-bold text-neutral-700 px-4 text-center">
         Paket Open Trip belum tersedia atau sudah dihapus oleh Admin.
       </div>
     );
@@ -239,17 +239,17 @@ export default function DynamicOpenTripDetail() {
     (typeof product.stock === "number" && product.stock <= 0);
 
   return (
-    <div className="min-h-screen bg-white text-neutral-900 font-sans antialiased text-xs md:text-sm selection:bg-[#8C6239]/20 selection:text-[#8C6239]">
+    <div className="min-h-screen overflow-x-hidden bg-white text-neutral-900 font-sans antialiased text-xs md:text-sm selection:bg-[#8C6239]/20 selection:text-[#8C6239]">
       {/* TAB BAR */}
-      <div className="sticky top-0 z-10 w-full bg-white/80 backdrop-blur-md py-4 px-4 flex justify-left border-b border-neutral-200/50">
-        <div className="inline-flex relative rounded-full bg-neutral-200/80 p-1">
+      <div className="sticky top-0 z-10 w-full bg-white/80 backdrop-blur-md py-3 sm:py-4 px-3 sm:px-4 flex justify-start border-b border-neutral-200/50">
+        <div className="inline-flex max-w-full overflow-x-auto no-scrollbar relative rounded-full bg-neutral-200/80 p-1 shrink-0">
           {tabs.map((tab) => {
             const isSelected = activeTab === tab;
             return (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`relative px-6 py-2.5 text-[10px] md:text-xs font-black tracking-widest rounded-full transition-all duration-300 cursor-pointer uppercase ${
+                className={`relative px-3.5 sm:px-6 py-2 sm:py-2.5 text-[10px] md:text-xs font-black tracking-wider sm:tracking-widest rounded-full transition-all duration-300 cursor-pointer uppercase whitespace-nowrap shrink-0 ${
                   isSelected
                     ? "bg-[#6F4E37] text-white shadow"
                     : "text-neutral-600 hover:text-neutral-900"
@@ -263,9 +263,9 @@ export default function DynamicOpenTripDetail() {
       </div>
 
       {/* MAIN CONTAINER */}
-      <main className="mx-auto max-w-[1140px] px-4 py-8 space-y-12">
+      <main className="mx-auto max-w-[1140px] px-3.5 sm:px-4 py-6 sm:py-8 space-y-8 sm:space-y-12">
         <div
-          className={`grid gap-8 ${
+          className={`grid gap-6 sm:gap-8 ${
             activeTab === "INFORMATION" ? "lg:grid-cols-3" : "grid-cols-1"
           }`}
         >
@@ -273,12 +273,12 @@ export default function DynamicOpenTripDetail() {
           <div
             className={`${
               activeTab === "INFORMATION" ? "lg:col-span-2" : "col-span-1"
-            } space-y-6`}
+            } space-y-5 sm:space-y-6 min-w-0`}
           >
             {activeTab === "INFORMATION" && (
-              <div className="space-y-6">
-                <div className="bg-neutral-200/80 rounded-[28px] p-8">
-                  <h1 className="text-2xl md:text-4xl font-black tracking-tight text-neutral-900">
+              <div className="space-y-5 sm:space-y-6">
+                <div className="bg-neutral-200/80 rounded-[24px] sm:rounded-[28px] p-5 sm:p-8">
+                  <h1 className="text-xl sm:text-2xl md:text-4xl font-black tracking-tight text-neutral-900 break-words">
                     {product.title}
                   </h1>
                   <p className="mt-2 text-neutral-700 font-bold text-xs flex flex-wrap items-center gap-2">
@@ -292,12 +292,12 @@ export default function DynamicOpenTripDetail() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                   <div className="bg-neutral-200/80 rounded-[20px] p-4">
                     <p className="font-bold text-neutral-500 text-[10px] uppercase tracking-wider">
                       Jalur Pendakian
                     </p>
-                    <p className="font-black text-neutral-900 text-sm mt-1">
+                    <p className="font-black text-neutral-900 text-xs sm:text-sm mt-1">
                       🗺️ {meta.route || "-"}
                     </p>
                   </div>
@@ -306,7 +306,7 @@ export default function DynamicOpenTripDetail() {
                     <p className="font-bold text-neutral-500 text-[10px] uppercase tracking-wider">
                       Durasi
                     </p>
-                    <p className="font-black text-neutral-900 text-sm mt-1">
+                    <p className="font-black text-neutral-900 text-xs sm:text-sm mt-1">
                       ⏱️ {meta.duration || "-"}
                     </p>
                   </div>
@@ -315,23 +315,23 @@ export default function DynamicOpenTripDetail() {
                     <p className="font-bold text-neutral-500 text-[10px] uppercase tracking-wider">
                       Grade Gunung
                     </p>
-                    <p className="font-black text-[#6F4E37] text-sm mt-1">
+                    <p className="font-black text-[#6F4E37] text-xs sm:text-sm mt-1">
                       ⛰️ Grade {meta.grade || "2"} / 5
                     </p>
                   </div>
                 </div>
 
-                <div className="bg-neutral-200/80 rounded-[24px] p-6">
+                <div className="bg-neutral-200/80 rounded-[22px] sm:rounded-[24px] p-5 sm:p-6">
                   <h3 className="text-[11px] font-black text-neutral-600 uppercase tracking-widest mb-3">
                     Destinasi
                   </h3>
-                  <p className="text-neutral-900 leading-relaxed font-medium text-xs md:text-sm whitespace-pre-line">
+                  <p className="text-neutral-900 leading-relaxed font-medium text-xs md:text-sm whitespace-pre-line break-words">
                     {product.description}
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div className="bg-neutral-200/80 rounded-[24px] p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+                  <div className="bg-neutral-200/80 rounded-[22px] sm:rounded-[24px] p-5 sm:p-6">
                     <h4 className="text-[11px] font-black text-[#6F4E37] uppercase tracking-widest mb-4 flex items-center gap-1.5">
                       <span>📍</span>
                       <span>Titik Kumpul (Meeting Point)</span>
@@ -345,14 +345,14 @@ export default function DynamicOpenTripDetail() {
                         {meetingPoints.map((mp, i) => (
                           <li key={i} className="flex items-start gap-2">
                             <span className="text-[#6F4E37] font-black">•</span>
-                            <span>{mp}</span>
+                            <span className="break-words">{mp}</span>
                           </li>
                         ))}
                       </ul>
                     )}
                   </div>
 
-                  <div className="bg-neutral-200/80 rounded-[24px] p-6">
+                  <div className="bg-neutral-200/80 rounded-[22px] sm:rounded-[24px] p-5 sm:p-6">
                     <h4 className="text-[11px] font-black text-[#6F4E37] uppercase tracking-widest mb-4 flex items-center gap-1.5">
                       <span>🚩</span>
                       <span>Pos Alur Pendakian</span>
@@ -366,7 +366,7 @@ export default function DynamicOpenTripDetail() {
                         {trailPosts.map((post, i) => (
                           <li key={i} className="flex items-start gap-2">
                             <span className="text-rose-600 font-black">▸</span>
-                            <span>{post}</span>
+                            <span className="break-words">{post}</span>
                           </li>
                         ))}
                       </ul>
@@ -375,7 +375,7 @@ export default function DynamicOpenTripDetail() {
                 </div>
 
                 {includesList.length > 0 && (
-                  <div className="bg-neutral-200/80 rounded-[24px] p-6">
+                  <div className="bg-neutral-200/80 rounded-[22px] sm:rounded-[24px] p-5 sm:p-6">
                     <h3 className="text-[11px] font-black text-neutral-700 tracking-widest uppercase mb-4 flex items-center gap-1.5">
                       <span className="text-emerald-700">☑</span>
                       <span>Include</span>
@@ -386,7 +386,7 @@ export default function DynamicOpenTripDetail() {
                           <span className="text-[#6F4E37] font-black shrink-0">
                             ✓
                           </span>
-                          <span className="leading-snug">{inc}</span>
+                          <span className="leading-snug break-words">{inc}</span>
                         </li>
                       ))}
                     </ul>
@@ -403,11 +403,11 @@ export default function DynamicOpenTripDetail() {
                     Belum ada jadwal itinerary yang ditambahkan oleh Admin.
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
                     {groupedItinerary.map(([dayNum, entries]) => (
                       <div
                         key={dayNum}
-                        className="rounded-[28px] bg-neutral-200/80 p-6 space-y-5"
+                        className="rounded-[24px] sm:rounded-[28px] bg-neutral-200/80 p-5 sm:p-6 space-y-5"
                       >
                         <div className="inline-flex rounded-full bg-[#6F4E37] px-5 py-1.5 text-xs font-black tracking-widest text-white uppercase">
                           DAY {dayNum}
@@ -420,7 +420,7 @@ export default function DynamicOpenTripDetail() {
                                 {row.startTime}
                                 {row.endTime ? ` - ${row.endTime}` : ""}
                               </p>
-                              <p className="text-xs font-bold text-neutral-900 leading-snug">
+                              <p className="text-xs font-bold text-neutral-900 leading-snug break-words">
                                 {row.activity}
                               </p>
                             </div>
@@ -436,8 +436,8 @@ export default function DynamicOpenTripDetail() {
             {/* TAB ESSENTIAL */}
             {activeTab === "ESSENTIAL" && (
               <div className="border border-neutral-200 rounded-[24px] overflow-hidden bg-neutral-200/70">
-                <div className="px-6 py-5 bg-neutral-200/90 border-b border-neutral-300/70">
-                  <h3 className="font-black text-neutral-900 text-lg md:text-xl tracking-wide">
+                <div className="px-4 sm:px-6 py-4 sm:py-5 bg-neutral-200/90 border-b border-neutral-300/70">
+                  <h3 className="font-black text-neutral-900 text-base sm:text-lg md:text-xl tracking-wide">
                     Daftar Rekomendasi Perlengkapan Wajib Mandiri
                   </h3>
                 </div>
@@ -451,10 +451,14 @@ export default function DynamicOpenTripDetail() {
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="bg-neutral-300/80 text-[11px] font-black uppercase tracking-wider text-neutral-700">
-                          <th className="py-3.5 px-5">NO</th>
-                          <th className="py-3.5 px-5">NAMA BARANG WAJIB</th>
-                          <th className="py-3.5 px-5 text-center">KUANTITAS</th>
-                          <th className="py-3.5 px-5 text-center">
+                          <th className="py-3.5 px-3.5 sm:px-5">NO</th>
+                          <th className="py-3.5 px-3.5 sm:px-5">
+                            NAMA BARANG WAJIB
+                          </th>
+                          <th className="py-3.5 px-3.5 sm:px-5 text-center">
+                            KUANTITAS
+                          </th>
+                          <th className="py-3.5 px-3.5 sm:px-5 text-center">
                             CATATAN KHUSUS
                           </th>
                         </tr>
@@ -462,16 +466,16 @@ export default function DynamicOpenTripDetail() {
                       <tbody className="divide-y divide-neutral-300/60 text-xs font-bold text-neutral-900">
                         {essentialRows.map((row, i) => (
                           <tr key={i} className="hover:bg-white/40 transition">
-                            <td className="py-3.5 px-5 text-neutral-600">
+                            <td className="py-3.5 px-3.5 sm:px-5 text-neutral-600">
                               {row.no || i + 1}
                             </td>
-                            <td className="py-3.5 px-5 font-black">
+                            <td className="py-3.5 px-3.5 sm:px-5 font-black">
                               {row.itemName}
                             </td>
-                            <td className="py-3.5 px-5 text-center">
+                            <td className="py-3.5 px-3.5 sm:px-5 text-center">
                               {row.quantity}
                             </td>
-                            <td className="py-3.5 px-5 text-center">
+                            <td className="py-3.5 px-3.5 sm:px-5 text-center">
                               {row.note || "-"}
                             </td>
                           </tr>
@@ -486,8 +490,8 @@ export default function DynamicOpenTripDetail() {
             {/* TAB RULES TERPISAH: NO & KETENTUAN */}
             {activeTab === "RULES" && (
               <div className="border border-neutral-200 rounded-[24px] overflow-hidden bg-neutral-200/70">
-                <div className="px-6 py-5 bg-neutral-200/90 border-b border-neutral-300/70">
-                  <h3 className="font-black text-neutral-900 text-lg md:text-xl tracking-wide">
+                <div className="px-4 sm:px-6 py-4 sm:py-5 bg-neutral-200/90 border-b border-neutral-300/70">
+                  <h3 className="font-black text-neutral-900 text-base sm:text-lg md:text-xl tracking-wide">
                     Syarat & Ketentuan Open Trip
                   </h3>
                 </div>
@@ -501,17 +505,19 @@ export default function DynamicOpenTripDetail() {
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="bg-neutral-300/80 text-[11px] font-black uppercase tracking-wider text-neutral-700">
-                          <th className="py-3.5 px-5 w-20">NO</th>
-                          <th className="py-3.5 px-5">KETENTUAN</th>
+                          <th className="py-3.5 px-3.5 sm:px-5 w-16 sm:w-20">
+                            NO
+                          </th>
+                          <th className="py-3.5 px-3.5 sm:px-5">KETENTUAN</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-neutral-300/60 text-xs font-bold text-neutral-900">
                         {rulesRows.map((row, i) => (
                           <tr key={i} className="hover:bg-white/40 transition">
-                            <td className="py-3.5 px-5 text-neutral-600">
+                            <td className="py-3.5 px-3.5 sm:px-5 text-neutral-600">
                               {row.no || i + 1}
                             </td>
-                            <td className="py-3.5 px-5 leading-relaxed">
+                            <td className="py-3.5 px-3.5 sm:px-5 leading-relaxed">
                               {row.rule}
                             </td>
                           </tr>
@@ -526,13 +532,13 @@ export default function DynamicOpenTripDetail() {
 
           {/* KOLOM KANAN */}
           {activeTab === "INFORMATION" && (
-            <div className="lg:col-span-1 space-y-5">
+            <div className="lg:col-span-1 space-y-4 sm:space-y-5 min-w-0">
               {embedSrc && (
-                <div className="border border-neutral-200 bg-white rounded-[24px] overflow-hidden shadow-sm">
+                <div className="border border-neutral-200 bg-white rounded-[22px] sm:rounded-[24px] overflow-hidden shadow-sm">
                   <iframe
                     src={embedSrc}
                     title={`Maps ${product.title}`}
-                    className="w-full h-44 border-0"
+                    className="w-full h-40 sm:h-44 border-0"
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
                     allowFullScreen
@@ -540,9 +546,9 @@ export default function DynamicOpenTripDetail() {
                 </div>
               )}
 
-              <div className="border border-neutral-200 bg-neutral-100/90 rounded-[24px] p-5 shadow-sm">
+              <div className="border border-neutral-200 bg-neutral-100/90 rounded-[22px] sm:rounded-[24px] p-4 sm:p-5 shadow-sm">
                 {product.image && (
-                  <div className="w-full h-44 rounded-xl overflow-hidden mb-4 border border-neutral-200 bg-white">
+                  <div className="w-full h-40 sm:h-44 rounded-xl overflow-hidden mb-4 border border-neutral-200 bg-white">
                     <img
                       src={product.image}
                       alt={product.title}
@@ -552,7 +558,7 @@ export default function DynamicOpenTripDetail() {
                 )}
 
                 <div className="mb-3">
-                  <h2 className="text-lg font-black text-neutral-900 tracking-tight">
+                  <h2 className="text-base sm:text-lg font-black text-neutral-900 tracking-tight break-words">
                     {product.title}
                   </h2>
                   <p className="text-neutral-500 text-xs font-bold mt-0.5">
@@ -569,7 +575,7 @@ export default function DynamicOpenTripDetail() {
                     Jadwal keberangkatan segera diinfokan.
                   </p>
                 ) : (
-                  <div className="mt-3 grid grid-cols-2 gap-2">
+                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {timeSlots.map((slot) => {
                       const isSold =
                         Boolean(slot.sold) || Number(slot.quota) <= 0;
@@ -612,11 +618,11 @@ export default function DynamicOpenTripDetail() {
                   *Blok merah bertanda SOLD artinya kuota sudah penuh
                 </p>
 
-                <div className="mt-5 border-t border-dashed border-neutral-300 pt-4 flex items-center justify-between">
+                <div className="mt-5 border-t border-dashed border-neutral-300 pt-4 flex items-center justify-between gap-2">
                   <span className="text-xs font-bold text-neutral-600">
                     Harga Trip / Pax
                   </span>
-                  <span className="text-base font-black text-[#6F4E37]">
+                  <span className="text-sm sm:text-base font-black text-[#6F4E37]">
                     {formattedPrice}
                   </span>
                 </div>
@@ -654,7 +660,7 @@ export default function DynamicOpenTripDetail() {
         {/* GALERI DOKUMENTASI */}
         {activeTab === "INFORMATION" &&
           (slider1Cards.length > 0 || slider2Cards.length > 0) && (
-            <div className="space-y-5 pt-8 border-t border-neutral-200/70">
+            <div className="space-y-4 sm:space-y-5 pt-6 sm:pt-8 border-t border-neutral-200/70">
               <div>
                 <h2 className="text-sm md:text-base font-black tracking-wider text-neutral-900 uppercase">
                   GALERI DOKUMENTASI
@@ -664,9 +670,9 @@ export default function DynamicOpenTripDetail() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 {slider1Cards.length > 0 && (
-                  <div className="relative rounded-[28px] overflow-hidden h-[320px] md:h-[360px] bg-neutral-900 shadow-md">
+                  <div className="relative rounded-[24px] sm:rounded-[28px] overflow-hidden h-[240px] sm:h-[320px] md:h-[360px] bg-neutral-900 shadow-md">
                     {slider1Cards.map((card, idx) => (
                       <div
                         key={idx}
@@ -682,12 +688,12 @@ export default function DynamicOpenTripDetail() {
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />
-                        <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-3">
-                          <div>
+                        <div className="absolute bottom-4 sm:bottom-5 left-4 sm:left-5 right-4 sm:right-5 flex items-end justify-between gap-3">
+                          <div className="min-w-0">
                             <span className="inline-block bg-black/65 backdrop-blur-xs text-white text-[9px] font-black tracking-widest uppercase px-2.5 py-1 rounded-full mb-1.5">
                               {card.badge}
                             </span>
-                            <p className="text-white font-black text-base md:text-lg leading-snug">
+                            <p className="text-white font-black text-sm sm:text-base md:text-lg leading-snug break-words">
                               {card.caption}
                             </p>
                           </div>
@@ -712,7 +718,7 @@ export default function DynamicOpenTripDetail() {
                 )}
 
                 {slider2Cards.length > 0 && (
-                  <div className="relative rounded-[28px] overflow-hidden h-[320px] md:h-[360px] bg-neutral-900 shadow-md">
+                  <div className="relative rounded-[24px] sm:rounded-[28px] overflow-hidden h-[240px] sm:h-[320px] md:h-[360px] bg-neutral-900 shadow-md">
                     {slider2Cards.map((card, idx) => (
                       <div
                         key={idx}
@@ -728,12 +734,12 @@ export default function DynamicOpenTripDetail() {
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />
-                        <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-3">
-                          <div>
+                        <div className="absolute bottom-4 sm:bottom-5 left-4 sm:left-5 right-4 sm:right-5 flex items-end justify-between gap-3">
+                          <div className="min-w-0">
                             <span className="inline-block bg-black/65 backdrop-blur-xs text-white text-[9px] font-black tracking-widest uppercase px-2.5 py-1 rounded-full mb-1.5">
                               {card.badge}
                             </span>
-                            <p className="text-white font-black text-base md:text-lg leading-snug">
+                            <p className="text-white font-black text-sm sm:text-base md:text-lg leading-snug break-words">
                               {card.caption}
                             </p>
                           </div>

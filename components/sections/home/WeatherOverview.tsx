@@ -209,34 +209,34 @@ export default function WeatherOverview() {
   }, [weather?.locationName]);
 
   return (
-    <section className="w-full bg-white py-4 px-4 sm:px-6">
+    <section className="w-full bg-white py-3.5 sm:py-4 px-3.5 sm:px-6">
       <div className="max-w-7xl mx-auto">
-        <div className="relative overflow-hidden rounded-[26px] bg-white/95 backdrop-blur-2xl backdrop-saturate-150 border border-black/[0.08] ring-1 ring-black/[0.04] shadow-[0_12px_30px_-12px_rgba(15,23,42,0.12),inset_0_1px_0_0_rgba(255,255,255,1)] px-4 py-2.5 sm:px-6 transition-all duration-200 hover:bg-white hover:border-black/[0.14] hover:shadow-[0_16px_36px_-12px_rgba(15,23,42,0.16),inset_0_1px_0_0_rgba(255,255,255,1)]">
-          <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <div className="relative overflow-hidden rounded-[24px] sm:rounded-[26px] bg-white/95 backdrop-blur-2xl backdrop-saturate-150 border border-black/[0.08] ring-1 ring-black/[0.04] shadow-[0_12px_30px_-12px_rgba(15,23,42,0.12),inset_0_1px_0_0_rgba(255,255,255,1)] px-3.5 py-2.5 sm:px-6 transition-all duration-200 hover:bg-white hover:border-black/[0.14] hover:shadow-[0_16px_36px_-12px_rgba(15,23,42,0.16),inset_0_1px_0_0_rgba(255,255,255,1)]">
+          <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 lg:gap-3">
             {/* Lokasi & Tombol Refresh */}
-            <div className="flex items-center justify-between lg:justify-start gap-3 shrink-0">
+            <div className="flex items-center justify-between lg:justify-start gap-2.5 shrink-0">
               <a
                 href={accuWeatherUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Lihat detail cuaca di AccuWeather"
-                className="group inline-flex items-center gap-2.5 text-left"
+                className="group inline-flex items-center gap-2.5 text-left min-w-0"
               >
                 <div className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-md border border-black/[0.08] text-[#6F4E37] flex items-center justify-center shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,1)]">
                   <MapPin className="w-4 h-4" />
                 </div>
-                <div className="flex items-center gap-2">
-                  <div>
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="min-w-0">
                     <span className="block text-[10px] font-bold uppercase tracking-wider text-neutral-600 leading-none">
                       Cuaca 7 Hari
                     </span>
-                    <span className="text-xs sm:text-sm font-extrabold text-neutral-950 leading-snug">
+                    <span className="text-xs sm:text-sm font-extrabold text-neutral-950 leading-snug truncate block">
                       {loading
                         ? "Mendeteksi lokasi..."
                         : weather?.locationName || DEFAULT_COORDS.name}
                     </span>
                   </div>
-                  <ExternalLink className="w-3.5 h-3.5 text-neutral-500 group-hover:text-[#6F4E37] transition" />
+                  <ExternalLink className="w-3.5 h-3.5 text-neutral-500 group-hover:text-[#6F4E37] transition shrink-0" />
                 </div>
               </a>
 
@@ -244,7 +244,7 @@ export default function WeatherOverview() {
                 type="button"
                 onClick={detectUserLocation}
                 title="Perbarui lokasi"
-                className="w-7 h-7 rounded-full bg-white/90 hover:bg-neutral-100 backdrop-blur-md border border-black/[0.08] text-neutral-700 flex items-center justify-center transition cursor-pointer shadow-[inset_0_1px_0_rgba(255,255,255,1)]"
+                className="w-7 h-7 rounded-full bg-white/90 hover:bg-neutral-100 backdrop-blur-md border border-black/[0.08] text-neutral-700 flex items-center justify-center transition cursor-pointer shadow-[inset_0_1px_0_rgba(255,255,255,1)] shrink-0"
               >
                 <RefreshCw
                   className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`}
@@ -261,24 +261,27 @@ export default function WeatherOverview() {
               className="flex-1 min-w-0"
             >
               {loading && (!weather || weather.days.length === 0) ? (
-                <div className="grid grid-cols-4 sm:grid-cols-7 divide-x divide-neutral-900/[0.07]">
+                <div className="flex sm:grid sm:grid-cols-7 gap-1.5 sm:gap-0 sm:divide-x divide-neutral-900/[0.07] overflow-x-auto">
                   {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-                    <div key={i} className="px-2 py-1">
+                    <div
+                      key={i}
+                      className="min-w-[74px] sm:min-w-0 px-2 py-1 shrink-0 sm:shrink"
+                    >
                       <div className="h-10 rounded-2xl bg-neutral-100 animate-pulse" />
                     </div>
                   ))}
                 </div>
               ) : weather && weather.days.length > 0 ? (
-                <div className="grid grid-cols-4 sm:grid-cols-7 divide-y sm:divide-y-0 sm:divide-x divide-neutral-900/[0.08]">
+                <div className="flex sm:grid sm:grid-cols-7 divide-x divide-neutral-900/[0.08] overflow-x-auto no-scrollbar">
                   {weather.days.slice(0, 7).map((d) => (
                     <div
                       key={d.dateStr}
-                      className="px-2.5 py-1.5 flex items-center justify-between sm:flex-col sm:justify-center gap-1 text-center rounded-2xl hover:bg-white/80 backdrop-blur-xs transition"
+                      className="min-w-[76px] sm:min-w-0 shrink-0 sm:shrink px-2.5 py-1.5 flex flex-col items-center justify-center gap-1 text-center rounded-2xl hover:bg-white/80 backdrop-blur-xs transition"
                     >
-                      <span className="text-[11px] font-bold text-neutral-700 truncate">
+                      <span className="text-[11px] font-bold text-neutral-700 whitespace-nowrap">
                         {d.dayLabel}
                       </span>
-                      <div className="flex items-center gap-1.5 sm:gap-1">
+                      <div className="flex items-center justify-center gap-1 whitespace-nowrap">
                         <span title={getWeatherLabelId(d.weatherCode)}>
                           {renderWeatherIcon(d.weatherCode)}
                         </span>

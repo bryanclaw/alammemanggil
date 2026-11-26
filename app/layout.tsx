@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 import Header from "@/components/layout/Header";
@@ -10,20 +10,29 @@ export const metadata: Metadata = {
   description: "Jawab Panggilan, Taklukkan Alam!",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body>
+    <html lang="id" className="overflow-x-hidden">
+      <body className="min-h-screen overflow-x-hidden antialiased bg-white text-neutral-900">
         <Providers>
-          <Header />
+          <div className="min-h-screen flex flex-col overflow-x-hidden">
+            <Header />
 
-          <main>{children}</main>
+            <main className="flex-1 w-full min-w-0 overflow-x-hidden">
+              {children}
+            </main>
 
-          <Footer />
+            <Footer />
+          </div>
         </Providers>
       </body>
     </html>
