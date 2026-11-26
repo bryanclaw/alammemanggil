@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 1. Pastikan produk tercatat di tabel Product agar relasi CartItem & OrderItem valid
+    // 1. Pastikan produk tercatat di tabel Product (pertahankan stock & metaData yang sudah ada jika sudah ada)
     const product = await prisma.product.upsert({
       where: { slug },
       update: {
@@ -53,6 +53,14 @@ export async function POST(req: Request) {
       },
     });
 
+    const maxStock = Math.max(0, Number(product.stock) || 0);
+    if (maxStock <= 0) {
+      return NextResponse.json(
+        { message: `Kuota / stok "${product.title}" sedang habis.` },
+        { status: 400 }
+      );
+    }
+
     // 2. Pastikan user punya Cart
     const cart = await prisma.cart.upsert({
       where: { userId: user.id },
@@ -60,7 +68,7 @@ export async function POST(req: Request) {
       create: { userId: user.id },
     });
 
-    // 3. Tambah item ke CartItem (akumulasi jika sudah ada)
+    // 3. Tambah item ke CartItem (akumulasi jika sudah ada, dibatasi stok)
     const existingItem = await prisma.cartItem.findUnique({
       where: {
         cartId_productId: {
@@ -70,17 +78,28 @@ export async function POST(req: Request) {
       },
     });
 
+    const currentInCart = existingItem ? Number(existingItem.paxCount) || 0 : 0;
+    const requestedAdd = Math.max(1, Math.floor(Number(paxCount) || 1));
+    const nextQty = Math.min(maxStock, currentInCart + requestedAdd);
+
+    if (currentInCart >= maxStock) {
+      return NextResponse.json(
+        { message: `Jumlah sudah mencapai kuota/stok tersedia (${maxStock}).` },
+        { status: 400 }
+      );
+    }
+
     if (existingItem) {
       await prisma.cartItem.update({
         where: { id: existingItem.id },
-        data: { paxCount: existingItem.paxCount + Number(paxCount) },
+        data: { paxCount: nextQty },
       });
     } else {
       await prisma.cartItem.create({
         data: {
           cartId: cart.id,
           productId: product.id,
-          paxCount: Number(paxCount),
+          paxCount: nextQty,
         },
       });
     }

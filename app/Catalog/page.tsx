@@ -8,12 +8,11 @@ import {
   Tent,
   Flashlight,
   Package,
+  Layers,
   ShoppingBag,
   CheckCircle2,
   ShieldCheck,
-  Sparkles,
   Loader2,
-  SlidersHorizontal,
   Calendar,
   ArrowUpRight,
   Check,
@@ -23,7 +22,7 @@ import {
 } from "lucide-react";
 
 type RentalCategoryKey =
-  | "ALL"
+  | "PAKET"
   | "TAS_CARRIER"
   | "ALAS_KAKI"
   | "PAKAIAN"
@@ -36,9 +35,16 @@ interface RentalRuleEntry {
   rule: string;
 }
 
+interface RentalPackageItem {
+  name: string;
+  quantity: string;
+  note?: string;
+}
+
 interface RentalMeta {
   nightsDefault?: number;
   conditionNote?: string;
+  packageItems?: RentalPackageItem[];
   rulesItems?: RentalRuleEntry[];
   rulesText?: string;
   unavailableDates?: string[];
@@ -64,7 +70,7 @@ const RENTAL_CATEGORIES: {
   shortLabel: string;
   icon: React.ComponentType<{ className?: string }>;
 }[] = [
-  { key: "ALL", label: "Semua Alat", shortLabel: "Semua", icon: Sparkles },
+  { key: "PAKET", label: "Paket", shortLabel: "Paket", icon: Layers },
   {
     key: "TAS_CARRIER",
     label: "Tas dan Carrier",
@@ -207,8 +213,23 @@ function formatRupiah(val: number): string {
 }
 
 function getCategoryLabel(subCat?: string | null): string {
+  if (String(subCat || "").toUpperCase() === "PAKET") {
+    return "Paket Rental";
+  }
   const found = RENTAL_CATEGORIES.find((c) => c.key === subCat);
   return found ? found.label : "Lainnya";
+}
+
+function getPackageItemsFromProduct(item: RentalProduct): RentalPackageItem[] {
+  const meta = (item.metaData || {}) as RentalMeta;
+  if (!Array.isArray(meta.packageItems)) return [];
+  return meta.packageItems
+    .filter((p) => p && String(p.name || "").trim() !== "")
+    .map((p) => ({
+      name: String(p.name).trim(),
+      quantity: String(p.quantity || "1").trim(),
+      note: p.note ? String(p.note).trim() : "",
+    }));
 }
 
 function getRulesFromProduct(item: RentalProduct): RentalRuleEntry[] {
@@ -257,16 +278,19 @@ function calculateRentalBooking(
   qty: number
 ): RentalCalculationSummary {
   const meta = (item.metaData || {}) as RentalMeta;
-  const blockedSet = new Set(meta.unavailableDates || []);
-  const bookedSet = new Set(meta.bookedDates || []);
+  const closedStoreSet = new Set(meta.unavailableDates || []);
+
+  const maxStock = Math.max(0, Number(item.stock) || 0);
+  const safeQty =
+    maxStock > 0 ? Math.max(1, Math.min(maxStock, Number(qty) || 1)) : 0;
 
   const rawDiff = diffDaysIso(rentalStartDate, rentalEndDate);
   const baseNights = Math.max(1, rawDiff > 0 ? rawDiff : 1);
   const safeRentalEnd =
     rawDiff > 0 ? rentalEndDate : addDaysIso(rentalStartDate, 1);
 
-  const minAllowedPickup = addDaysIso(rentalStartDate, -1); // H-1
-  const maxAllowedReturn = addDaysIso(safeRentalEnd, 1); // H+1
+  const minAllowedPickup = addDaysIso(rentalStartDate, -1);
+  const maxAllowedReturn = addDaysIso(safeRentalEnd, 1);
 
   const safePickup = clampIsoDate(pickupDate, minAllowedPickup, rentalStartDate);
   const safeReturn = clampIsoDate(returnDate, safeRentalEnd, maxAllowedReturn);
@@ -274,15 +298,18 @@ function calculateRentalBooking(
   const extraChargeNights = 0;
   const totalBilledNights = baseNights;
 
-  const baseSubtotal = item.price * baseNights * qty;
+  const baseSubtotal = item.price * baseNights * safeQty;
   const extraSubtotal = 0;
-  const totalPrice = item.price * totalBilledNights * qty;
+  const totalPrice = item.price * totalBilledNights * safeQty;
 
   const rentalDates = expandDateRangeIso(rentalStartDate, safeRentalEnd);
-  const blockedConflicts = rentalDates.filter((d) => blockedSet.has(d));
-  const bookedConflicts = rentalDates.filter((d) => bookedSet.has(d));
+  const blockedConflicts = rentalDates.filter((d) => closedStoreSet.has(d));
+  const bookedConflicts: string[] = [];
 
-  const scheduleLabel = `Rental ${rentalStartDate} s/d ${safeRentalEnd} (${baseNights} mlm) | Ambil: ${safePickup} | Kembali: ${safeReturn}`;
+  const isPaket = String(item.subCategory || "").toUpperCase() === "PAKET";
+  const unitWord = isPaket ? "paket" : "item";
+
+  const scheduleLabel = `Rental ${rentalStartDate} s/d ${safeRentalEnd} (${baseNights} mlm, ${safeQty} ${unitWord}) | Ambil: ${safePickup} | Kembali: ${safeReturn}`;
 
   return {
     rentalStartDate,
@@ -292,7 +319,7 @@ function calculateRentalBooking(
     baseNights,
     extraChargeNights,
     totalBilledNights,
-    qty,
+    qty: safeQty,
     baseSubtotal,
     extraSubtotal,
     totalPrice,
@@ -453,6 +480,7 @@ function BlockedRedDateInput({
                     onChange(cell.iso!);
                     setOpen(false);
                   }}
+                  title={isBlocked ? "Toko tutup" : undefined}
                   className={`h-7 rounded-lg text-[11px] font-bold flex items-center justify-center transition ${
                     isBlocked
                       ? "bg-red-600 text-white font-black opacity-90 cursor-not-allowed"
@@ -485,6 +513,8 @@ function RentalGearSimpleCard({
 }) {
   const isOutOfStock = Number(item.stock) <= 0;
   const isAdded = justAddedId === item.id;
+  const isPaket = String(item.subCategory || "").toUpperCase() === "PAKET";
+  const pkgItems = useMemo(() => getPackageItemsFromProduct(item), [item]);
 
   return (
     <div className="group relative h-full">
@@ -504,7 +534,13 @@ function RentalGearSimpleCard({
             )}
 
             <div className="absolute top-3 left-3 z-20">
-              <span className="px-3 py-1 rounded-full bg-black/75 backdrop-blur-md text-white text-[10px] font-bold tracking-wide">
+              <span
+                className={`px-3 py-1 rounded-full backdrop-blur-md text-[10px] font-bold tracking-wide ${
+                  isPaket
+                    ? "bg-[#6F4E37] text-white"
+                    : "bg-black/75 text-white"
+                }`}
+              >
                 {getCategoryLabel(item.subCategory)}
               </span>
             </div>
@@ -517,7 +553,9 @@ function RentalGearSimpleCard({
                     : "bg-white/95 text-neutral-900 border border-black/[0.06]"
                 }`}
               >
-                {isOutOfStock ? "Habis" : `Stok ${item.stock}`}
+                {isOutOfStock
+                  ? "Stok Habis"
+                  : `Stok ${item.stock} ${isPaket ? "Paket" : "Item"}`}
               </span>
             </div>
 
@@ -527,13 +565,13 @@ function RentalGearSimpleCard({
                   {formatRupiah(item.price)}
                 </span>
                 <span className="text-[10px] text-neutral-300 font-semibold ml-1">
-                  / malam
+                  {isPaket ? "/ paket / malam" : "/ malam"}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="px-5 pt-1.5 pb-3 space-y-1.5">
+          <div className="px-5 pt-1.5 pb-3 space-y-2">
             <h3 className="text-base font-black text-neutral-900 tracking-tight leading-snug">
               {item.title}
             </h3>
@@ -541,6 +579,24 @@ function RentalGearSimpleCard({
               {item.description ||
                 "Peralatan outdoor terawat dan siap dipakai untuk kebutuhan pendakian maupun kegiatan alam terbuka."}
             </p>
+
+            {isPaket && pkgItems.length > 0 && (
+              <div className="rounded-2xl bg-[#FAF8F5] border border-amber-900/10 p-2.5 space-y-1">
+                <p className="text-[10px] font-black uppercase tracking-wider text-[#6F4E37]">
+                  Isi Paket:
+                </p>
+                <div className="flex flex-wrap gap-1">
+                  {pkgItems.map((pk, idx) => (
+                    <span
+                      key={idx}
+                      className="px-2 py-0.5 rounded-lg bg-white border border-neutral-200/80 text-[10px] font-bold text-neutral-800"
+                    >
+                      {pk.quantity}x {pk.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -565,7 +621,13 @@ function RentalGearSimpleCard({
             ) : (
               <>
                 <ShoppingBag className="w-4 h-4" />
-                <span>{isOutOfStock ? "Stok Habis" : "Sewa Alat Ini"}</span>
+                <span>
+                  {isOutOfStock
+                    ? "Stok Habis"
+                    : isPaket
+                    ? "Sewa Paket Ini"
+                    : "Sewa Alat Ini"}
+                </span>
               </>
             )}
           </button>
@@ -589,9 +651,18 @@ function RentalBookingModal({
   onToggleAgree: (id: string) => void;
   onOpenRules: (item: RentalProduct) => void;
   onClose: () => void;
-  onAddToCart: (item: RentalProduct, calc: RentalCalculationSummary) => Promise<boolean>;
+  onAddToCart: (
+    item: RentalProduct,
+    calc: RentalCalculationSummary
+  ) => Promise<boolean>;
   addingId: string | null;
 }) {
+  const maxStock = Math.max(0, Number(item.stock) || 0);
+  const isOutOfStock = maxStock <= 0;
+  const isPaket = String(item.subCategory || "").toUpperCase() === "PAKET";
+  const pkgItems = useMemo(() => getPackageItemsFromProduct(item), [item]);
+  const unitWord = isPaket ? "paket" : "item";
+
   const defaultStart = useMemo(() => addDaysIso(getTodayIso(), 1), []);
   const defaultEnd = useMemo(() => addDaysIso(defaultStart, 1), [defaultStart]);
 
@@ -599,7 +670,15 @@ function RentalBookingModal({
   const [rentalEndDate, setRentalEndDate] = useState<string>(defaultEnd);
   const [pickupDate, setPickupDate] = useState<string>(defaultStart);
   const [returnDate, setReturnDate] = useState<string>(defaultEnd);
-  const [qty, setQty] = useState<number>(1);
+  const [qty, setQty] = useState<number>(isOutOfStock ? 0 : 1);
+
+  useEffect(() => {
+    if (maxStock <= 0) {
+      setQty(0);
+    } else {
+      setQty((prev) => Math.max(1, Math.min(maxStock, prev || 1)));
+    }
+  }, [maxStock]);
 
   const minPickupIso = useMemo(
     () => addDaysIso(rentalStartDate, -1),
@@ -665,23 +744,24 @@ function RentalBookingModal({
     [item, rentalStartDate, safeRentalEndIso, pickupDate, returnDate, qty]
   );
 
-  const maxStock = Math.max(1, Number(item.stock) || 10);
-  const isOutOfStock = Number(item.stock) <= 0;
-  const hasConflict =
-    calc.blockedConflicts.length > 0 || calc.bookedConflicts.length > 0;
+  const hasClosedStoreConflict = calc.blockedConflicts.length > 0;
   const isAdding = addingId === item.id;
 
   const meta = (item.metaData || {}) as RentalMeta;
-  const blockedDatesSet = useMemo(
-    () =>
-      new Set([
-        ...(meta.unavailableDates || []),
-        ...(meta.bookedDates || []),
-      ]),
-    [meta.unavailableDates, meta.bookedDates]
+  const closedStoreDatesSet = useMemo(
+    () => new Set(meta.unavailableDates || []),
+    [meta.unavailableDates]
   );
 
   const handleConfirm = async () => {
+    if (
+      isOutOfStock ||
+      hasClosedStoreConflict ||
+      calc.qty <= 0 ||
+      calc.qty > maxStock
+    ) {
+      return;
+    }
     const ok = await onAddToCart(item, calc);
     if (ok) {
       onClose();
@@ -695,7 +775,7 @@ function RentalBookingModal({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-[28px] max-w-md w-full p-5 sm:p-6 shadow-2xl border border-black/10 space-y-4 overflow-visible"
+        className="bg-white rounded-[28px] max-w-md w-full p-5 sm:p-6 shadow-2xl border border-black/10 space-y-4 max-h-[92vh] overflow-y-auto"
       >
         <div className="flex items-center justify-between gap-3 border-b border-neutral-100 pb-3">
           <div className="flex items-center gap-3 min-w-0">
@@ -712,15 +792,11 @@ function RentalBookingModal({
             </div>
             <div className="min-w-0">
               <span className="text-[10px] font-extrabold text-[#6F4E37] uppercase tracking-wider">
-                Detail Sewa Alat
+                {isPaket ? "Detail Paket Rental" : "Detail Sewa Alat"}
               </span>
               <h3 className="text-base font-black text-neutral-950 truncate">
                 {item.title}
               </h3>
-              <p className="text-xs font-bold text-neutral-600">
-                {formatRupiah(item.price)}{" "}
-                <span className="font-normal text-neutral-400">/ malam</span>
-              </p>
             </div>
           </div>
 
@@ -732,6 +808,34 @@ function RentalBookingModal({
             <X className="w-4 h-4" />
           </button>
         </div>
+
+        {isPaket && pkgItems.length > 0 && (
+          <div className="rounded-2xl bg-amber-50/80 border border-amber-200/80 p-3 space-y-1.5">
+            <p className="text-[11px] font-black text-[#6F4E37] uppercase tracking-wider">
+              Perlengkapan dalam Paket:
+            </p>
+            <div className="space-y-1">
+              {pkgItems.map((pk, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between text-xs font-semibold text-neutral-800"
+                >
+                  <span>
+                    • {pk.name}{" "}
+                    {pk.note ? (
+                      <span className="text-[11px] text-neutral-500 font-normal">
+                        ({pk.note})
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="font-black text-[#6F4E37]">
+                    {pk.quantity}x
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="rounded-2xl bg-neutral-100/80 p-3.5 space-y-3">
           <div className="flex items-center gap-1.5 text-xs font-black text-neutral-900">
@@ -746,7 +850,7 @@ function RentalBookingModal({
               </label>
               <BlockedRedDateInput
                 value={rentalStartDate}
-                blockedDates={blockedDatesSet}
+                blockedDates={closedStoreDatesSet}
                 onChange={handleRentalStartChange}
                 align="left"
               />
@@ -758,7 +862,7 @@ function RentalBookingModal({
               <BlockedRedDateInput
                 value={safeRentalEndIso}
                 min={addDaysIso(rentalStartDate, 1)}
-                blockedDates={blockedDatesSet}
+                blockedDates={closedStoreDatesSet}
                 onChange={handleRentalEndChange}
                 align="right"
               />
@@ -774,7 +878,7 @@ function RentalBookingModal({
                 value={calc.pickupDate}
                 min={minPickupIso}
                 max={maxPickupIso}
-                blockedDates={blockedDatesSet}
+                blockedDates={closedStoreDatesSet}
                 onChange={handlePickupChange}
                 align="left"
               />
@@ -787,7 +891,7 @@ function RentalBookingModal({
                 value={calc.returnDate}
                 min={minReturnIso}
                 max={maxReturnIso}
-                blockedDates={blockedDatesSet}
+                blockedDates={closedStoreDatesSet}
                 onChange={handleReturnChange}
                 align="right"
               />
@@ -796,14 +900,14 @@ function RentalBookingModal({
 
           <div className="flex items-center justify-between pt-1 border-t border-neutral-200/70">
             <span className="text-xs font-bold text-neutral-700">
-              Jumlah Unit (Stok {item.stock})
+              Jumlah {isPaket ? "Paket" : "Item"} (Stok {maxStock})
             </span>
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                disabled={isOutOfStock}
+                disabled={isOutOfStock || qty <= 1}
                 onClick={() => setQty((q) => Math.max(1, q - 1))}
-                className="w-7 h-7 rounded-full bg-white text-neutral-900 text-xs font-black flex items-center justify-center shadow-2xs hover:bg-neutral-200/60 cursor-pointer disabled:opacity-40"
+                className="w-7 h-7 rounded-full bg-white text-neutral-900 text-xs font-black flex items-center justify-center shadow-2xs hover:bg-neutral-200/60 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 -
               </button>
@@ -814,7 +918,7 @@ function RentalBookingModal({
                 type="button"
                 disabled={isOutOfStock || qty >= maxStock}
                 onClick={() => setQty((q) => Math.min(maxStock, q + 1))}
-                className="w-7 h-7 rounded-full bg-white text-neutral-900 text-xs font-black flex items-center justify-center shadow-2xs hover:bg-neutral-200/60 cursor-pointer disabled:opacity-40"
+                className="w-7 h-7 rounded-full bg-white text-neutral-900 text-xs font-black flex items-center justify-center shadow-2xs hover:bg-neutral-200/60 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 +
               </button>
@@ -854,7 +958,7 @@ function RentalBookingModal({
         <div className="space-y-1 text-xs pt-0.5">
           <div className="flex items-center justify-between text-neutral-600 font-semibold">
             <span>
-              Sewa ({calc.baseNights} mlm × {qty})
+              Sewa ({calc.qty} {unitWord} × {calc.baseNights} mlm)
             </span>
             <span>{formatRupiah(calc.baseSubtotal)}</span>
           </div>
@@ -868,10 +972,10 @@ function RentalBookingModal({
 
         <button
           type="button"
-          disabled={isOutOfStock || isAdding || hasConflict}
+          disabled={isOutOfStock || isAdding || hasClosedStoreConflict}
           onClick={handleConfirm}
           className={`w-full py-3 px-4 rounded-2xl text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer ${
-            isOutOfStock || hasConflict
+            isOutOfStock || hasClosedStoreConflict
               ? "bg-neutral-200 text-neutral-500 cursor-not-allowed"
               : agreed
               ? "bg-neutral-950 hover:bg-[#6F4E37] text-white shadow-sm active:scale-[0.98]"
@@ -889,8 +993,8 @@ function RentalBookingModal({
               <span>
                 {isOutOfStock
                   ? "Stok Habis"
-                  : hasConflict
-                  ? "Tanggal Tidak Tersedia"
+                  : hasClosedStoreConflict
+                  ? "Toko Tutup pada Tanggal Ini"
                   : agreed
                   ? "Tambah ke Keranjang"
                   : "Setujui Peraturan & Tambah"}
@@ -907,7 +1011,7 @@ export default function CatalogPage() {
   const [items, setItems] = useState<RentalProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] =
-    useState<RentalCategoryKey>("ALL");
+    useState<RentalCategoryKey>("PAKET");
   const [agreedIds, setAgreedIds] = useState<Record<string, boolean>>({});
   const [bookingModalProduct, setBookingModalProduct] =
     useState<RentalProduct | null>(null);
@@ -932,7 +1036,7 @@ export default function CatalogPage() {
     async function loadRentalProducts() {
       setLoading(true);
       try {
-        const res = await fetch("/api/catalog?category=RENTAL", {
+        const res = await fetch(`/api/catalog?category=RENTAL&_t=${Date.now()}`, {
           cache: "no-store",
         });
         const data = await res.json();
@@ -955,13 +1059,17 @@ export default function CatalogPage() {
       }
     }
     loadRentalProducts();
+
+    const onCatalogUpdate = () => loadRentalProducts();
+    window.addEventListener("catalog-updated", onCatalogUpdate);
+
     return () => {
       active = false;
+      window.removeEventListener("catalog-updated", onCatalogUpdate);
     };
   }, []);
 
   const filteredItems = useMemo(() => {
-    if (selectedCategory === "ALL") return items;
     return items.filter(
       (item) => (item.subCategory || "LAINNYA") === selectedCategory
     );
@@ -984,10 +1092,16 @@ export default function CatalogPage() {
       return false;
     }
 
-    if (calc.blockedConflicts.length > 0 || calc.bookedConflicts.length > 0) {
+    const maxStock = Math.max(0, Number(item.stock) || 0);
+    if (maxStock <= 0 || calc.qty <= 0 || calc.qty > maxStock) {
+      showBanner("warn", `Stok alat tidak tersedia (${maxStock} item).`);
+      return false;
+    }
+
+    if (calc.blockedConflicts.length > 0) {
       showBanner(
         "warn",
-        "Pilih tanggal sewa lain karena ada tanggal sewa yang tidak tersedia."
+        "Pilih tanggal lain karena toko tutup pada tanggal sewa yang dipilih."
       );
       return false;
     }
@@ -1011,8 +1125,8 @@ export default function CatalogPage() {
             baseNights: calc.baseNights,
             extraChargeNights: calc.extraChargeNights,
             totalBilledNights: calc.totalBilledNights,
-            datesToLock: calc.datesToLock,
             scheduleLabel: calc.scheduleLabel,
+            qty: calc.qty,
           },
         }),
       });
@@ -1044,8 +1158,8 @@ export default function CatalogPage() {
             baseNights: calc.baseNights,
             extraChargeNights: calc.extraChargeNights,
             totalBilledNights: calc.totalBilledNights,
-            datesToLock: calc.datesToLock,
             scheduleLabel: calc.scheduleLabel,
+            qty: calc.qty,
           };
           rentalMap[key] = bookingPayload;
           rentalMap[item.id] = bookingPayload;
@@ -1058,9 +1172,13 @@ export default function CatalogPage() {
         }
 
         setJustAddedId(item.id);
+        const unitLabel =
+          String(item.subCategory || "").toUpperCase() === "PAKET"
+            ? "paket"
+            : "item";
         showBanner(
           "success",
-          `"${item.title}" (${calc.totalBilledNights} mlm × ${calc.qty}) masuk keranjang.`
+          `"${item.title}" (${calc.qty} ${unitLabel} × ${calc.totalBilledNights} mlm) masuk keranjang.`
         );
         window.dispatchEvent(new Event("cart-updated"));
         setTimeout(() => {
@@ -1115,9 +1233,8 @@ export default function CatalogPage() {
               Sewa Perlengkapan Outdoor
             </h1>
             <p className="text-sm text-neutral-600 leading-relaxed">
-              Pilih perlengkapan yang dibutuhkan, lalu tentukan tanggal sewa,
-              pengambilan (maks. H-1), dan pengembalian (maks. H+1) langsung di
-              detail sewa.
+              Sewa alat satuan maupun paket perlengkapan outdoor siap pakai untuk
+              pendakian dan kegiatan alam terbuka.
             </p>
           </div>
         </div>
@@ -1126,10 +1243,6 @@ export default function CatalogPage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-8">
         <div className="rounded-[26px] bg-white/80 backdrop-blur-xl border border-black/[0.06] p-3 shadow-2xs">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 text-[11px] font-extrabold text-neutral-500 shrink-0">
-              <SlidersHorizontal className="w-3.5 h-3.5" />
-              Kategori:
-            </span>
             {RENTAL_CATEGORIES.map((cat) => {
               const IconComp = cat.icon;
               const active = selectedCategory === cat.key;
@@ -1167,12 +1280,8 @@ export default function CatalogPage() {
           <div className="rounded-[32px] bg-white/80 backdrop-blur-xl border border-black/[0.06] p-12 text-center space-y-2">
             <Package className="w-10 h-10 text-neutral-400 mx-auto" />
             <h2 className="text-base font-black text-neutral-900">
-              Belum ada alat rental pada kategori ini
+              Belum ada alat atau paket rental pada kategori ini
             </h2>
-            <p className="text-xs text-neutral-500 max-w-md mx-auto">
-              Admin dapat menambahkan produk rental baru melalui{" "}
-              <strong>Dashboard Admin → Etalase Paket → RENTAL</strong>.
-            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -3,7 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ShoppingCart, Loader2, CheckCircle2, ArrowRight, X } from "lucide-react";
+import {
+  ShoppingCart,
+  Loader2,
+  CheckCircle2,
+  ArrowRight,
+  X,
+} from "lucide-react";
 
 interface AddToCartButtonProps {
   title: string;
@@ -38,13 +44,27 @@ export default function AddToCartButton({
     setErrorMsg("");
 
     try {
-      if (selectedSchedule && slug) {
+      let effectiveSchedule = selectedSchedule;
+      if (!effectiveSchedule && slug) {
         try {
           const raw = localStorage.getItem("alam_memanggil_selected_schedules");
           const map = raw ? JSON.parse(raw) : {};
-          map[slug] = {
-            dateLabel: selectedSchedule,
-          };
+          const saved = map?.[slug];
+          if (typeof saved === "string") {
+            effectiveSchedule = saved;
+          } else if (saved && typeof saved === "object" && saved.dateLabel) {
+            effectiveSchedule = String(saved.dateLabel);
+          }
+        } catch {
+          // abaikan error localStorage
+        }
+      }
+
+      if (effectiveSchedule && slug) {
+        try {
+          const raw = localStorage.getItem("alam_memanggil_selected_schedules");
+          const map = raw ? JSON.parse(raw) : {};
+          map[slug] = effectiveSchedule;
           localStorage.setItem(
             "alam_memanggil_selected_schedules",
             JSON.stringify(map)
@@ -65,7 +85,7 @@ export default function AddToCartButton({
           image,
           description,
           paxCount: 1,
-          selectedSchedule,
+          selectedSchedule: effectiveSchedule,
         }),
       });
 
@@ -148,7 +168,8 @@ export default function AddToCartButton({
               </h3>
               <p className="text-xs text-neutral-600 mt-1 leading-relaxed">
                 <strong>{title}</strong>
-                {selectedSchedule ? ` (${selectedSchedule})` : ""} berhasil ditambahkan ke keranjang belanja Anda.
+                {selectedSchedule ? ` (${selectedSchedule})` : ""} berhasil
+                ditambahkan ke keranjang belanja Anda.
               </p>
             </div>
 

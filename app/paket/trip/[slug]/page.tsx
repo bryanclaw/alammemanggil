@@ -56,6 +56,7 @@ interface TripProduct {
   title: string;
   slug: string;
   price: number;
+  stock?: number;
   description: string;
   image: string;
   metaData?: TripMeta | null;
@@ -86,9 +87,13 @@ export default function DynamicOpenTripDetail() {
     if (!slug) return;
     const fetchTrip = async () => {
       try {
-        const res = await fetch("/api/catalog?category=TRIP");
+        const res = await fetch(`/api/catalog?category=TRIP&_t=${Date.now()}`, {
+          cache: "no-store",
+        });
         const data = await res.json();
-        const found = (data.products || []).find((p: TripProduct) => p.slug === slug);
+        const found = (data.products || []).find(
+          (p: TripProduct) => p.slug === slug
+        );
         setProduct(found || null);
       } catch (err) {
         console.error(err);
@@ -122,10 +127,8 @@ export default function DynamicOpenTripDetail() {
     try {
       const raw = localStorage.getItem("alam_memanggil_selected_schedules");
       const map = raw ? JSON.parse(raw) : {};
-      map[product.slug] = {
-        slotId: activeSlot.id,
-        dateLabel: activeSlot.dateLabel,
-      };
+      map[product.slug] = activeSlot.dateLabel;
+      map[product.id] = activeSlot.dateLabel;
       localStorage.setItem(
         "alam_memanggil_selected_schedules",
         JSON.stringify(map)
@@ -204,7 +207,9 @@ export default function DynamicOpenTripDetail() {
     );
   }
 
-  const formattedPrice = `Rp ${new Intl.NumberFormat("id-ID").format(product.price)}/Pax`;
+  const formattedPrice = `Rp ${new Intl.NumberFormat("id-ID").format(
+    product.price
+  )}/Pax`;
   const embedSrc = extractEmbedSrc(meta.mapsUrl);
   const meetingPoints = meta.meetingPoints || [];
   const trailPosts = meta.trailPosts || [];
@@ -225,6 +230,13 @@ export default function DynamicOpenTripDetail() {
           .map((s) => s.trim())
           .filter(Boolean)
           .map((rule, idx) => ({ no: idx + 1, rule }));
+
+  const hasAvailableSlot = timeSlots.some(
+    (s) => !s.sold && Number(s.quota) > 0
+  );
+  const isTripSoldOut =
+    (timeSlots.length > 0 && !hasAvailableSlot) ||
+    (typeof product.stock === "number" && product.stock <= 0);
 
   return (
     <div className="min-h-screen bg-white text-neutral-900 font-sans antialiased text-xs md:text-sm selection:bg-[#8C6239]/20 selection:text-[#8C6239]">
@@ -371,7 +383,9 @@ export default function DynamicOpenTripDetail() {
                     <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-xs font-bold text-neutral-900">
                       {includesList.map((inc, i) => (
                         <li key={i} className="flex gap-2.5 items-start">
-                          <span className="text-[#6F4E37] font-black shrink-0">✓</span>
+                          <span className="text-[#6F4E37] font-black shrink-0">
+                            ✓
+                          </span>
                           <span className="leading-snug">{inc}</span>
                         </li>
                       ))}
@@ -440,7 +454,9 @@ export default function DynamicOpenTripDetail() {
                           <th className="py-3.5 px-5">NO</th>
                           <th className="py-3.5 px-5">NAMA BARANG WAJIB</th>
                           <th className="py-3.5 px-5 text-center">KUANTITAS</th>
-                          <th className="py-3.5 px-5 text-center">CATATAN KHUSUS</th>
+                          <th className="py-3.5 px-5 text-center">
+                            CATATAN KHUSUS
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-neutral-300/60 text-xs font-bold text-neutral-900">
@@ -449,9 +465,15 @@ export default function DynamicOpenTripDetail() {
                             <td className="py-3.5 px-5 text-neutral-600">
                               {row.no || i + 1}
                             </td>
-                            <td className="py-3.5 px-5 font-black">{row.itemName}</td>
-                            <td className="py-3.5 px-5 text-center">{row.quantity}</td>
-                            <td className="py-3.5 px-5 text-center">{row.note || "-"}</td>
+                            <td className="py-3.5 px-5 font-black">
+                              {row.itemName}
+                            </td>
+                            <td className="py-3.5 px-5 text-center">
+                              {row.quantity}
+                            </td>
+                            <td className="py-3.5 px-5 text-center">
+                              {row.note || "-"}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -489,7 +511,9 @@ export default function DynamicOpenTripDetail() {
                             <td className="py-3.5 px-5 text-neutral-600">
                               {row.no || i + 1}
                             </td>
-                            <td className="py-3.5 px-5 leading-relaxed">{row.rule}</td>
+                            <td className="py-3.5 px-5 leading-relaxed">
+                              {row.rule}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -547,7 +571,8 @@ export default function DynamicOpenTripDetail() {
                 ) : (
                   <div className="mt-3 grid grid-cols-2 gap-2">
                     {timeSlots.map((slot) => {
-                      const isSold = Boolean(slot.sold) || Number(slot.quota) <= 0;
+                      const isSold =
+                        Boolean(slot.sold) || Number(slot.quota) <= 0;
                       const isSelected = selectedSlotId === slot.id && !isSold;
                       return (
                         <button
@@ -597,15 +622,26 @@ export default function DynamicOpenTripDetail() {
                 </div>
 
                 <div className="mt-5 flex flex-col items-center">
-                  <AddToCartButton
-                    title={product.title}
-                    slug={product.slug}
-                    category="TRIP"
-                    price={product.price}
-                    image={product.image}
-                    description={product.description}
-                    label="KONFIRMASI"
-                  />
+                  {isTripSoldOut ? (
+                    <button
+                      type="button"
+                      disabled
+                      className="w-full py-2.5 px-6 rounded-full font-black text-xs tracking-widest uppercase bg-red-600 text-white cursor-not-allowed"
+                    >
+                      KUOTA PENUH / SOLD
+                    </button>
+                  ) : (
+                    <AddToCartButton
+                      title={product.title}
+                      slug={product.slug}
+                      category="TRIP"
+                      price={product.price}
+                      image={product.image}
+                      description={product.description}
+                      selectedSchedule={activeSlot?.dateLabel}
+                      label="KONFIRMASI"
+                    />
+                  )}
                   <p className="mt-2 text-[10px] text-neutral-500 font-semibold italic text-center">
                     *Total harga & jumlah pax diatur di keranjang
                   </p>

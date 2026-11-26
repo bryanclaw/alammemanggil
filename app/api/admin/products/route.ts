@@ -66,7 +66,7 @@ export async function GET(req: Request) {
   }
 }
 
-// POST: Tambah paket Trip atau Outbound baru
+// POST: Tambah paket Trip atau Outbound atau Rental baru
 export async function POST(req: Request) {
   const check = await requireAdmin();
   if (check.error) return check.error;
@@ -97,6 +97,8 @@ export async function POST(req: Request) {
       );
     }
 
+    const parsedStock = Math.max(0, Number(stock) || 0);
+
     const created = await prisma.product.create({
       data: {
         title: title.trim(),
@@ -110,7 +112,7 @@ export async function POST(req: Request) {
           (category === "OUTBOUND"
             ? "/images/flyingfox.jpg"
             : "/images/GEDE_1.jpeg"),
-        stock: Number(stock) || 15,
+        stock: parsedStock,
         metaData: metaData ?? {},
       },
     });
@@ -131,7 +133,7 @@ export async function POST(req: Request) {
   }
 }
 
-// PATCH: Edit paket & ubah harga
+// PATCH: Edit paket, stok & ubah harga
 export async function PATCH(req: Request) {
   const check = await requireAdmin();
   if (check.error) return check.error;
@@ -144,6 +146,7 @@ export async function PATCH(req: Request) {
       category,
       subCategory,
       price,
+      stock,
       description,
       image,
       metaData,
@@ -163,6 +166,9 @@ export async function PATCH(req: Request) {
         ...(category !== undefined ? { category } : {}),
         ...(subCategory !== undefined ? { subCategory } : {}),
         ...(price !== undefined ? { price: Number(price) } : {}),
+        ...(stock !== undefined
+          ? { stock: Math.max(0, Number(stock) || 0) }
+          : {}),
         ...(description !== undefined ? { description } : {}),
         ...(image !== undefined ? { image } : {}),
         ...(metaData !== undefined ? { metaData } : {}),

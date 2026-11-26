@@ -45,28 +45,27 @@ interface CartItemType {
   };
 }
 
+function normalizeCategory(category?: string): string {
+  return (category || "").trim().toUpperCase();
+}
+
 function getPackageTypesLabel(cartItems: CartItemType[]): string {
   if (cartItems.length === 0) {
     return "Belum ada paket di keranjang";
   }
 
-  const hasTrip = cartItems.some(
-    (item) => item.product.category.toUpperCase() === "TRIP"
-  );
-  const hasOutbound = cartItems.some(
-    (item) => item.product.category.toUpperCase() === "OUTBOUND"
+  const categories = new Set(
+    cartItems.map((item) => normalizeCategory(item.product.category))
   );
 
-  if (hasTrip && hasOutbound) {
-    return "Open Trip & Outbound";
+  const labels: string[] = [];
+  if (categories.has("TRIP")) labels.push("Open Trip");
+  if (categories.has("OUTBOUND")) labels.push("Outbound");
+  if (categories.has("RENTAL") || categories.has("GEAR")) {
+    labels.push("Rental");
   }
-  if (hasTrip) {
-    return "Open Trip";
-  }
-  if (hasOutbound) {
-    return "Outbound";
-  }
-  return "Paket Pilihan";
+
+  return labels.length > 0 ? labels.join(" & ") : "Paket Pilihan";
 }
 
 export default function CartPage() {
@@ -80,6 +79,23 @@ export default function CartPage() {
   const [outboundDaysByKey, setOutboundDaysByKey] = useState<
     Record<string, number>
   >({});
+
+  const persistSelectedSchedules = (schedMap: Record<string, string>) => {
+    try {
+      const toStore: Record<string, { dateLabel: string }> = {};
+      for (const [k, v] of Object.entries(schedMap)) {
+        if (v) {
+          toStore[k] = { dateLabel: v };
+        }
+      }
+      localStorage.setItem(
+        "alam_memanggil_selected_schedules",
+        JSON.stringify(toStore)
+      );
+    } catch {
+      // abaikan error storage
+    }
+  };
 
   const syncCartSchedulesAndDays = (cartItems: CartItemType[]) => {
     let savedSched: Record<string, { dateLabel?: string } | string> = {};
@@ -104,8 +120,9 @@ export default function CartPage() {
 
     for (const item of cartItems) {
       const key = item.product.slug || item.product.id;
+      const cat = normalizeCategory(item.product.category);
 
-      if (item.product.category === "OUTBOUND") {
+      if (cat === "OUTBOUND") {
         const ob = savedOutbound[key] || savedOutbound[item.product.id];
         const daysVal = Math.max(1, Number(ob?.days || 1));
         nextDaysMap[key] = daysVal;
@@ -120,7 +137,7 @@ export default function CartPage() {
         continue;
       }
 
-      if (item.product.category === "TRIP") {
+      if (cat === "TRIP") {
         const fromStorage = savedSched[key] || savedSched[item.product.id];
         const storageDate =
           typeof fromStorage === "string"
@@ -153,6 +170,7 @@ export default function CartPage() {
 
     setSelectedBySlug(nextSchedMap);
     setOutboundDaysByKey(nextDaysMap);
+    persistSelectedSchedules(nextSchedMap);
   };
 
   const fetchCart = async () => {
@@ -176,7 +194,8 @@ export default function CartPage() {
 
   const getItemMultiplier = (item: CartItemType) => {
     const key = item.product.slug || item.product.id;
-    if (item.product.category === "OUTBOUND") {
+    const cat = normalizeCategory(item.product.category);
+    if (cat === "OUTBOUND") {
       return Math.max(
         1,
         outboundDaysByKey[key] || outboundDaysByKey[item.product.id] || 1
@@ -185,21 +204,22 @@ export default function CartPage() {
     return Math.max(1, item.paxCount);
   };
 
+  const getMaxPaxForTrip = (item: CartItemType, chosenSchedule: string) => {
+    if (normalizeCategory(item.product.category) !== "TRIP") return Infinity;
+    const slots = item.product.metaData?.timeTrips || [];
+    const matched = slots.find(
+      (s) =>
+        !s.sold &&
+        s.dateLabel.trim().toLowerCase() ===
+          chosenSchedule.trim().toLowerCase()
+    );
+    return matched ? Math.max(1, Number(matched.quota)) : Infinity;
+  };
+
   const handleSelectSchedule = (key: string, dateLabel: string) => {
     setSelectedBySlug((prev) => {
       const updated = { ...prev, [key]: dateLabel };
-      try {
-        const toStore: Record<string, { dateLabel: string }> = {};
-        for (const [k, v] of Object.entries(updated)) {
-          toStore[k] = { dateLabel: v };
-        }
-        localStorage.setItem(
-          "alam_memanggil_selected_schedules",
-          JSON.stringify(toStore)
-        );
-      } catch {
-        // abaikan error storage
-      }
+      persistSelectedSchedules(updated);
       return updated;
     });
   };
@@ -208,11 +228,14 @@ export default function CartPage() {
     if (newPax < 1) return;
     setUpdatingId(cartItemId);
     try {
-      await fetch("/api/cart", {
+      const res = await fetch("/api/cart", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cartItemId, paxCount: newPax }),
       });
+      if (!res.ok) {
+        console.error("Gagal memperbarui jumlah pax");
+      }
       await fetchCart();
     } finally {
       setUpdatingId(null);
@@ -222,9 +245,12 @@ export default function CartPage() {
   const handleDeleteItem = async (cartItemId: string) => {
     setUpdatingId(cartItemId);
     try {
-      await fetch(`/api/cart?itemId=${cartItemId}`, {
+      const res = await fetch(`/api/cart?itemId=${cartItemId}`, {
         method: "DELETE",
       });
+      if (!res.ok) {
+        console.error("Gagal menghapus item");
+      }
       await fetchCart();
     } finally {
       setUpdatingId(null);
@@ -281,7 +307,8 @@ export default function CartPage() {
                 Keranjang Belanja Masih Kosong
               </h2>
               <p className="text-xs font-medium text-neutral-600 mt-1 max-w-md mx-auto">
-                Silakan pilih paket Open Trip atau layanan Outbound terlebih dahulu.
+                Silakan pilih paket Open Trip, layanan Outbound, atau rental
+                perlengkapan terlebih dahulu.
               </p>
             </div>
             <div className="flex flex-wrap justify-center gap-3 pt-2">
@@ -304,13 +331,31 @@ export default function CartPage() {
             <div className="lg:col-span-2 space-y-4">
               {items.map((item) => {
                 const key = item.product.slug || item.product.id;
-                const isOutbound = item.product.category === "OUTBOUND";
+                const cat = normalizeCategory(item.product.category);
+                const isTrip = cat === "TRIP";
+                const isOutbound = cat === "OUTBOUND";
+                const isRental = cat === "RENTAL" || cat === "GEAR";
+
                 const multiplier = getItemMultiplier(item);
                 const slots = item.product.metaData?.timeTrips || [];
                 const availableSlots = slots.filter(
                   (s) => !s.sold && Number(s.quota) > 0
                 );
                 const chosenSchedule = selectedBySlug[key] || "";
+                const maxTripPax = getMaxPaxForTrip(item, chosenSchedule);
+                const reachedMaxPax = isTrip && item.paxCount >= maxTripPax;
+
+                const badgeText = isTrip
+                  ? "OPEN TRIP"
+                  : isRental
+                  ? "RENTAL"
+                  : cat;
+
+                const unitPriceLabel = isOutbound
+                  ? "hari"
+                  : isRental
+                  ? "unit"
+                  : "pax";
 
                 return (
                   <div
@@ -329,9 +374,7 @@ export default function CartPage() {
                     <div className="flex-1 min-w-0 w-full">
                       <div className="flex items-center justify-between gap-2 mb-1">
                         <span className="inline-block text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900">
-                          {item.product.category === "TRIP"
-                            ? "OPEN TRIP"
-                            : item.product.category}
+                          {badgeText}
                         </span>
                       </div>
 
@@ -339,15 +382,10 @@ export default function CartPage() {
                         {item.product.title}
                       </h3>
                       <p className="text-xs font-semibold text-neutral-600 mt-0.5">
-                        {formatRupiah(item.product.price)} /{" "}
-                        {isOutbound
-                          ? "hari"
-                          : item.product.category === "GEAR"
-                          ? "unit"
-                          : "pax"}
+                        {formatRupiah(item.product.price)} / {unitPriceLabel}
                       </p>
 
-                      {item.product.category === "TRIP" && (
+                      {isTrip && (
                         <div className="mt-2.5 bg-amber-50/70 border border-amber-200/80 rounded-xl p-2.5">
                           <label className="flex items-center gap-1.5 text-[11px] font-black text-[#6F4E37] mb-1">
                             <Calendar className="w-3.5 h-3.5" />
@@ -385,11 +423,7 @@ export default function CartPage() {
                       )}
 
                       <div className="flex items-center justify-between mt-3 pt-3 border-t border-neutral-200/80">
-                        {isOutbound ? (
-                          <span className="text-xs font-black text-neutral-900">
-                            Durasi: {multiplier} Hari
-                          </span>
-                        ) : (
+                        {isTrip ? (
                           <div className="flex items-center gap-2.5">
                             <button
                               type="button"
@@ -404,20 +438,32 @@ export default function CartPage() {
                               <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
                             </button>
                             <span className="text-xs font-black text-neutral-900 min-w-16 text-center">
-                              {item.paxCount}{" "}
-                              {item.product.category === "GEAR" ? "Unit" : "Pax"}
+                              {item.paxCount} Pax
                             </span>
                             <button
                               type="button"
-                              disabled={updatingId === item.id}
+                              disabled={updatingId === item.id || reachedMaxPax}
                               onClick={() =>
                                 handleUpdatePax(item.id, item.paxCount + 1)
                               }
-                              className="w-8 h-8 rounded-lg border border-neutral-300 bg-white text-neutral-900 flex items-center justify-center hover:bg-neutral-100 disabled:text-neutral-400 cursor-pointer"
+                              title={
+                                reachedMaxPax
+                                  ? "Batas kuota jadwal tercapai"
+                                  : "Tambah pax"
+                              }
+                              className="w-8 h-8 rounded-lg border border-neutral-300 bg-white text-neutral-900 flex items-center justify-center hover:bg-neutral-100 disabled:text-neutral-400 disabled:border-neutral-200 disabled:bg-neutral-50 cursor-pointer"
                             >
                               <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                             </button>
                           </div>
+                        ) : isOutbound ? (
+                          <span className="text-xs font-black text-neutral-900">
+                            Durasi: {multiplier} Hari
+                          </span>
+                        ) : (
+                          <span className="text-xs font-black text-neutral-900">
+                            Jumlah: {multiplier} Unit
+                          </span>
                         )}
 
                         <div className="flex items-center gap-4">

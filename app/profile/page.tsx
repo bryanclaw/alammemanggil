@@ -19,6 +19,7 @@ import {
   Ban,
   Receipt,
   Sparkles,
+  Calendar,
 } from "lucide-react";
 import ShareableTripReceiptModal, {
   TripReceiptData,
@@ -104,10 +105,66 @@ const QUICK_REVIEW_TAGS = [
   "Worth It Banget",
 ];
 
+function getItemUnitLabel(category?: string | null): string {
+  const cat = String(category || "TRIP").toUpperCase();
+  if (cat === "OUTBOUND") return "Hari";
+  if (cat === "RENTAL" || cat === "GEAR") return "Item";
+  return "Pax";
+}
+
 function extractScheduleFromNotes(notes?: string | null): string | null {
   if (!notes) return null;
   const lineMatch = notes.match(/Jadwal\s*:\s*([^\n]+)/i);
-  return lineMatch?.[1]?.trim() || null;
+  if (lineMatch?.[1]?.trim()) return lineMatch[1].trim();
+  const rentalFallback = notes.match(/(Rental\s+[^\n]+)/i);
+  return rentalFallback?.[1]?.trim() || null;
+}
+
+function getScheduleForOrderItem(
+  item: OrderItemType,
+  order: OrderType
+): string | null {
+  if (item.selectedSchedule && item.selectedSchedule.trim()) {
+    return item.selectedSchedule.trim();
+  }
+  const notesSchedule = extractScheduleFromNotes(order.notes);
+  if (!notesSchedule) return null;
+
+  const segments = notesSchedule
+    .split("|")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const titleLower = item.product.title.trim().toLowerCase();
+
+  const matchedSeg = segments.find((seg) =>
+    seg.toLowerCase().startsWith(titleLower)
+  );
+  if (matchedSeg) {
+    const cleaned = matchedSeg
+      .replace(new RegExp(`^${item.product.title}\\s*:\\s*`, "i"), "")
+      .trim();
+    return cleaned || matchedSeg;
+  }
+
+  return notesSchedule;
+}
+
+function getItemSubtotal(item: OrderItemType, scheduleText: string | null): number {
+  const cat = String(item.product.category || "").toUpperCase();
+  if (cat === "RENTAL") {
+    const mlmMatch = (scheduleText || "").match(/(\d+)\s*(?:mlm|malam)/i);
+    const nights = mlmMatch?.[1] ? Math.max(1, Number(mlmMatch[1])) : 1;
+    return item.price * item.quantity * nights;
+  }
+  return item.price * item.quantity;
+}
+
+function splitNoteLines(notes?: string | null): string[] {
+  if (!notes) return [];
+  return notes
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
 }
 
 function isCancelledByCustomer(notes?: string | null): boolean {
@@ -199,7 +256,6 @@ function ProfileDashboardContent() {
       : "orders"
   );
 
-  // State Pesanan & Filter Tab di dalam Pesanan Saya (Semua, Konfirmasi, Selesai, Ulasan)
   const [orders, setOrders] = useState<OrderType[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [orderFilterTab, setOrderFilterTab] =
@@ -209,12 +265,10 @@ function ProfileDashboardContent() {
   );
   const [cancelErrorMsg, setCancelErrorMsg] = useState<string | null>(null);
 
-  // State Receipt Digital Terpadu setelah pesanan sesuai / selesai
   const [activeReceipt, setActiveReceipt] = useState<TripReceiptData | null>(
     null
   );
 
-  // Modal Edit / Upload Ulang Bukti TF (Pesanan Ditolak Admin)
   const [editingOrder, setEditingOrder] = useState<OrderType | null>(null);
   const [reuploadSenderName, setReuploadSenderName] = useState("");
   const [reuploadBankName, setReuploadBankName] = useState("BCA");
@@ -224,7 +278,6 @@ function ProfileDashboardContent() {
   const [reuploadError, setReuploadError] = useState<string | null>(null);
   const [savingReupload, setSavingReupload] = useState(false);
 
-  // State Ulasan ala E-Commerce (Shopee) di tab sebelah Selesai
   const [reviews, setReviews] = useState<ReviewItemType[]>([]);
   const [selectedReviewOrder, setSelectedReviewOrder] = useState<{
     orderId: string;
@@ -244,7 +297,6 @@ function ProfileDashboardContent() {
     text: string;
   } | null>(null);
 
-  // State Profil & Password
   const [profile, setProfile] = useState<ProfileUser | null>(null);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -264,7 +316,6 @@ function ProfileDashboardContent() {
   } | null>(null);
   const [savingPass, setSavingPass] = useState(false);
 
-  // State Notifikasi
   const [apiNotifications, setApiNotifications] = useState<NotificationType[]>(
     []
   );
@@ -285,7 +336,6 @@ function ProfileDashboardContent() {
     }
   }, [searchParams]);
 
-  // Muat ulasan tersimpan dari localStorage & sinkronkan bila admin menghapus ulasan
   const loadReviewsFromStorage = useCallback(() => {
     try {
       const saved = localStorage.getItem(REVIEWS_STORAGE_KEY);
@@ -376,7 +426,6 @@ function ProfileDashboardContent() {
     loadNotifications();
   }, []);
 
-  // Gabungkan notifikasi dari backend dengan notifikasi status pesanan (termasuk pesanan ditolak admin)
   const notifications = useMemo<NotificationType[]>(() => {
     const merged: NotificationType[] = apiNotifications.map((n) => {
       const norm = normalizeNotificationTitle(n.title, n.message);
@@ -469,7 +518,6 @@ function ProfileDashboardContent() {
     );
   }, [apiNotifications, orders, readIdsOverride]);
 
-  // Daftar pesanan yang sudah selesai/sesuai untuk diulas (berdasarkan kode orderan)
   const reviewableOrders = useMemo(() => {
     return orders
       .filter((order) => isOrderApprovedOrDone(order))
@@ -495,7 +543,6 @@ function ProfileDashboardContent() {
       minimumFractionDigits: 0,
     }).format(num);
 
-  // Jumlah tab: Semua, Konfirmasi, Selesai, Ulasan
   const confirmationCount = useMemo(
     () => orders.filter((o) => isOrderInConfirmationTab(o)).length,
     [orders]
@@ -550,7 +597,6 @@ function ProfileDashboardContent() {
     );
   };
 
-  // Kembalikan kuota Trip / tanggal Outbound ke katalog agar stok otomatis kembali tersedia
   const restoreStockForOrder = async (order: OrderType) => {
     const notesSchedule = extractScheduleFromNotes(order.notes);
 
@@ -763,29 +809,27 @@ function ProfileDashboardContent() {
     }
   };
 
-  // Buka struk / receipt digital terpadu untuk seluruh item dalam orderan
   const handleOpenAccReceipt = (order: OrderType) => {
     const orderCode = `#${order.id.slice(-6).toUpperCase()}`;
     const firstItem = order.items[0];
     const isSingleItem = order.items.length === 1;
 
     const mappedOrderItems = order.items.map((it) => {
-      const cat = (it.product?.category || "TRIP").toUpperCase();
-      const unitLabel =
-        cat === "OUTBOUND" ? "Hari" : cat === "GEAR" ? "Unit" : "Pax";
+      const unitLabel = getItemUnitLabel(it.product?.category);
+      const itemSched = getScheduleForOrderItem(it, order);
       return {
         title: it.product.title,
         category: it.product.category,
         quantity: it.quantity,
         unitLabel,
         price: it.price,
-        schedule: it.selectedSchedule || undefined,
+        schedule: itemSched || undefined,
       };
     });
 
     const notesSchedule = extractScheduleFromNotes(order.notes);
     const fallbackItemSchedules = order.items
-      .map((it) => it.selectedSchedule)
+      .map((it) => getScheduleForOrderItem(it, order))
       .filter(Boolean)
       .join(" | ");
 
@@ -798,12 +842,7 @@ function ProfileDashboardContent() {
         .trim();
     }
 
-    const singleUnitLabel =
-      firstItem?.product.category === "OUTBOUND"
-        ? "Hari"
-        : firstItem?.product.category === "GEAR"
-        ? "Unit"
-        : "Pax";
+    const singleUnitLabel = getItemUnitLabel(firstItem?.product.category);
 
     setActiveReceipt({
       id: order.id,
@@ -829,15 +868,12 @@ function ProfileDashboardContent() {
     const orderCode = order.id.slice(-6).toUpperCase();
     const itemLines = order.items
       .map((it) => {
-        const unitLabel =
-          it.product.category === "OUTBOUND"
-            ? "Hari"
-            : it.product.category === "GEAR"
-            ? "Unit"
-            : "Pax";
-        return `- ${it.product.title} (${it.quantity} ${unitLabel}) = ${formatRupiah(
-          it.price * it.quantity
-        )}`;
+        const unitLabel = getItemUnitLabel(it.product.category);
+        const itemSched = getScheduleForOrderItem(it, order);
+        const subtotal = getItemSubtotal(it, itemSched);
+        return `- ${it.product.title} (${it.quantity} ${unitLabel})${
+          itemSched ? ` [${itemSched}]` : ""
+        } = ${formatRupiah(subtotal)}`;
       })
       .join("\n");
 
@@ -1002,7 +1038,9 @@ function ProfileDashboardContent() {
   };
 
   const handleMarkSingleRead = async (notifId: string) => {
-    setReadIdsOverride((prev) => (prev.includes(notifId) ? prev : [...prev, notifId]));
+    setReadIdsOverride((prev) =>
+      prev.includes(notifId) ? prev : [...prev, notifId]
+    );
     try {
       await fetch("/api/notifications", {
         method: "PATCH",
@@ -1053,7 +1091,6 @@ function ProfileDashboardContent() {
   return (
     <div className="min-h-screen bg-neutral-50 py-10 px-4 text-neutral-950">
       <div className="max-w-5xl mx-auto">
-        {/* HEADER PROFIL */}
         <div className="bg-white rounded-3xl border border-neutral-300 p-6 mb-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-[#6F4E37] text-white flex items-center justify-center text-xl font-black shadow">
@@ -1116,7 +1153,6 @@ function ProfileDashboardContent() {
           </div>
         </div>
 
-        {/* TAB 1: PESANAN SAYA (SEMUA | KONFIRMASI | SELESAI | ULASAN) */}
         {activeTab === "orders" && (
           <div className="bg-white rounded-3xl border border-neutral-300 shadow-sm overflow-hidden">
             <div className="grid grid-cols-2 sm:grid-cols-4 border-b border-neutral-200 bg-neutral-50/70">
@@ -1415,6 +1451,7 @@ function ProfileDashboardContent() {
                   filteredOrders.map((order) => {
                     const isApproved = isOrderApprovedOrDone(order);
                     const rejectedByAdmin = isRejectedByAdmin(order);
+                    const noteLines = splitNoteLines(order.notes);
 
                     return (
                       <div
@@ -1450,34 +1487,59 @@ function ProfileDashboardContent() {
                           </div>
                         )}
 
-                        <div className="space-y-2">
-                          {order.items.map((item) => (
-                            <div
-                              key={item.id}
-                              className="flex justify-between items-center text-xs"
-                            >
-                              <span className="font-bold text-neutral-950">
-                                {item.product.title}{" "}
-                                <span className="text-neutral-800 font-semibold">
-                                  ({item.quantity}{" "}
-                                  {item.product.category === "OUTBOUND"
-                                    ? "Hari"
-                                    : item.product.category === "GEAR"
-                                    ? "Unit"
-                                    : "Pax"}
-                                  )
+                        <div className="space-y-2.5">
+                          {order.items.map((item) => {
+                            const unitLabel = getItemUnitLabel(
+                              item.product.category
+                            );
+                            const itemSched = getScheduleForOrderItem(
+                              item,
+                              order
+                            );
+                            const itemSubtotal = getItemSubtotal(
+                              item,
+                              itemSched
+                            );
+
+                            return (
+                              <div
+                                key={item.id}
+                                className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 text-xs bg-neutral-50/90 p-3 rounded-xl border border-neutral-200/80"
+                              >
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-bold text-neutral-950 leading-snug">
+                                    {item.product.title}{" "}
+                                    <span className="text-neutral-700 font-semibold">
+                                      ({item.quantity} {unitLabel})
+                                    </span>
+                                  </p>
+                                  {itemSched && (
+                                    <div className="mt-1.5 flex items-start gap-1.5 text-[11px] font-bold text-[#6F4E37] leading-snug">
+                                      <Calendar className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                                      <span className="break-words">
+                                        Jadwal: {itemSched}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                                <span className="font-black text-neutral-950 shrink-0 sm:pt-0.5">
+                                  {formatRupiah(itemSubtotal)}
                                 </span>
-                              </span>
-                              <span className="font-black text-neutral-950">
-                                {formatRupiah(item.price * item.quantity)}
-                              </span>
-                            </div>
-                          ))}
+                              </div>
+                            );
+                          })}
                         </div>
 
-                        {order.notes && (
-                          <div className="bg-neutral-100 border border-neutral-300 rounded-xl p-3 text-xs font-medium text-neutral-900 whitespace-pre-line">
-                            {order.notes}
+                        {noteLines.length > 0 && (
+                          <div className="bg-neutral-100/90 border border-neutral-300 rounded-xl p-3.5 text-xs font-medium text-neutral-900 space-y-1.5">
+                            {noteLines.map((line, idx) => (
+                              <p
+                                key={idx}
+                                className="leading-relaxed break-words"
+                              >
+                                {line}
+                              </p>
+                            ))}
                           </div>
                         )}
 
@@ -1573,7 +1635,6 @@ function ProfileDashboardContent() {
           </div>
         )}
 
-        {/* TAB 2: PROFIL & GANTI KATA SANDI */}
         {activeTab === "profile" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <form
@@ -1729,7 +1790,6 @@ function ProfileDashboardContent() {
           </div>
         )}
 
-        {/* TAB 3: NOTIFIKASI */}
         {activeTab === "notifications" && (
           <div className="bg-white rounded-2xl border border-neutral-300 p-6 shadow-sm space-y-4">
             <div className="flex items-center justify-between border-b border-neutral-200 pb-3">
@@ -1824,14 +1884,12 @@ function ProfileDashboardContent() {
         )}
       </div>
 
-      {/* MODAL RECEIPT DIGITAL TERPADU */}
       <ShareableTripReceiptModal
         isOpen={Boolean(activeReceipt)}
         onClose={() => setActiveReceipt(null)}
         trip={activeReceipt}
       />
 
-      {/* MODAL EDIT / UPLOAD ULANG BUKTI TRANSFER UNTUK PESANAN DITOLAK ADMIN */}
       {editingOrder && (
         <div className="fixed inset-0 z-50 bg-black/55 backdrop-blur-xs flex items-center justify-center p-4 text-neutral-950">
           <form

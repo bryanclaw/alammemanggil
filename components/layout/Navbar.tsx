@@ -16,8 +16,8 @@ import {
 const menus = [
   { name: "Home", href: "/" },
   { name: "Destination", href: "/destination" },
-  { name: "Outbound", href: "/outbound" },
-  { name: "Catalog", href: "/catalog" },
+  { name: "Outbound", href: "/outbound", hidden: true }, // disembunyikan sementara
+  { name: "Rentals", href: "/catalog" },
 ];
 
 export default function Navbar() {
@@ -25,6 +25,8 @@ export default function Navbar() {
   const { data: session, status } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState<number>(0);
+
+  const visibleMenus = menus.filter((menu) => !menu.hidden);
 
   const fetchCartCount = useCallback(async () => {
     if (status !== "authenticated") {
@@ -69,7 +71,7 @@ export default function Navbar() {
 
         {/* CONTAINER NAVIGASI */}
         <ul className="flex gap-2 bg-black/15 p-1.5 rounded-full border border-white/10">
-          {menus.map((menu) => {
+          {visibleMenus.map((menu) => {
             const isActive = pathname === menu.href;
 
             return (

@@ -2,6 +2,7 @@ import Hero from "@/components/sections/home/Hero";
 import VidioOpening from "@/components/sections/home/vidioopening";
 import WhyChooseUs from "@/components/sections/home/WhyChooseUs";
 import About from "@/components/sections/home/About";
+import WeatherOverview from "@/components/sections/home/WeatherOverview";
 import Recommendation from "@/components/sections/home/Recommendation";
 import Testimonial from "@/components/sections/home/Testimonial";
 import Expedition from "@/components/sections/home/Expedition";
@@ -14,6 +15,7 @@ export default function Home() {
       <VidioOpening />
       <WhyChooseUs />
       <About />
+      <WeatherOverview />
       <Recommendation />
       <Testimonial />
       <Expedition />

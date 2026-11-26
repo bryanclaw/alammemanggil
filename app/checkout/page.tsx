@@ -48,6 +48,12 @@ export interface RentalBookingMeta {
 interface ProductMetaRules {
   rulesItems?: RuleEntry[];
   rulesText?: string;
+  timeTrips?: Array<{
+    id?: string;
+    dateLabel: string;
+    quota: number;
+    sold?: boolean;
+  }>;
 }
 
 interface CartItemType {
@@ -60,6 +66,7 @@ interface CartItemType {
     slug?: string;
     category: string;
     price: number;
+    stock?: number;
     image: string;
     metaData?: ProductMetaRules | null;
   };
@@ -205,28 +212,50 @@ export default function CheckoutPage() {
         nextDays[key] = daysVal;
         nextDays[item.product.id] = daysVal;
 
-        const sc = savedSchedules[key] || savedSchedules[item.product.id];
+        const sc =
+          item.selectedSchedule ||
+          savedSchedules[key] ||
+          savedSchedules[item.product.id];
         const label =
           typeof sc === "string"
             ? sc
             : sc?.dateLabel || ob?.label || `${daysVal} Hari`;
         nextSched[key] = label;
+        nextSched[item.product.id] = label;
       } else if (item.product.category === "RENTAL") {
         const rent = savedRental[key] || savedRental[item.product.id];
+        const itemQty = Math.max(1, Number(rent?.qty || item.paxCount || 1));
         if (rent) {
-          nextRental[key] = rent;
-          nextRental[item.product.id] = rent;
-          nextSched[key] = rent.scheduleLabel;
+          const nights = Math.max(1, Number(rent.totalBilledNights || 1));
+          const label =
+            rent.scheduleLabel ||
+            (rent.rentalStartDate && rent.rentalEndDate
+              ? `Rental ${rent.rentalStartDate} s/d ${rent.rentalEndDate} (${nights} mlm, ${itemQty} item) | Ambil: ${rent.pickupDate || "-"} | Kembali: ${rent.returnDate || "-"}`
+              : `Rental ${nights} Malam (${itemQty} Item)`);
+          const normalizedRent: RentalBookingMeta = {
+            ...rent,
+            productId: item.product.id,
+            qty: itemQty,
+            totalBilledNights: nights,
+            scheduleLabel: label,
+          };
+          nextRental[key] = normalizedRent;
+          nextRental[item.product.id] = normalizedRent;
+          nextSched[key] = label;
+          nextSched[item.product.id] = label;
         } else {
           const sc =
             item.selectedSchedule ||
             savedSchedules[key] ||
             savedSchedules[item.product.id];
           const label =
-            typeof sc === "string"
-              ? sc
-              : sc?.dateLabel || `Rental ${Math.max(1, item.paxCount)} Malam`;
+            typeof sc === "string" && sc.trim()
+              ? sc.trim()
+              : sc && typeof sc === "object" && sc.dateLabel
+              ? sc.dateLabel
+              : `Rental ${itemQty} Item`;
           nextSched[key] = label;
+          nextSched[item.product.id] = label;
         }
       } else {
         const sc =
@@ -236,6 +265,7 @@ export default function CheckoutPage() {
         const label = typeof sc === "string" ? sc : sc?.dateLabel || "";
         if (label) {
           nextSched[key] = label;
+          nextSched[item.product.id] = label;
         }
       }
     }
@@ -334,6 +364,38 @@ export default function CheckoutPage() {
     setAgreedProductIds(next);
   };
 
+  const getRentalQty = useCallback(
+    (item: CartItemType) => {
+      const key = item.product.slug || item.product.id;
+      const rent =
+        rentalBookingsByKey[key] || rentalBookingsByKey[item.product.id];
+      return Math.max(1, Number(rent?.qty || item.paxCount || 1));
+    },
+    [rentalBookingsByKey]
+  );
+
+  const getRentalNights = useCallback(
+    (item: CartItemType) => {
+      const key = item.product.slug || item.product.id;
+      const rent =
+        rentalBookingsByKey[key] || rentalBookingsByKey[item.product.id];
+      if (rent?.totalBilledNights) {
+        return Math.max(1, Number(rent.totalBilledNights));
+      }
+      const schedStr =
+        scheduleByKey[key] ||
+        scheduleByKey[item.product.id] ||
+        item.selectedSchedule ||
+        "";
+      const mlmMatch = schedStr.match(/(\d+)\s*(?:mlm|malam)/i);
+      if (mlmMatch?.[1]) {
+        return Math.max(1, Number(mlmMatch[1]));
+      }
+      return 1;
+    },
+    [rentalBookingsByKey, scheduleByKey]
+  );
+
   const getItemMultiplier = useCallback(
     (item: CartItemType) => {
       const key = item.product.slug || item.product.id;
@@ -344,15 +406,11 @@ export default function CheckoutPage() {
         );
       }
       if (item.product.category === "RENTAL") {
-        const rent =
-          rentalBookingsByKey[key] || rentalBookingsByKey[item.product.id];
-        const nights = Math.max(1, Number(rent?.totalBilledNights || 1));
-        const unitQty = Math.max(1, Number(rent?.qty || item.paxCount || 1));
-        return nights * unitQty;
+        return getRentalNights(item) * getRentalQty(item);
       }
       return Math.max(1, item.paxCount);
     },
-    [outboundDaysByKey, rentalBookingsByKey]
+    [outboundDaysByKey, getRentalNights, getRentalQty]
   );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -504,7 +562,7 @@ export default function CheckoutPage() {
       return;
     }
 
-    let selectedSchedules: Record<string, string> = { ...scheduleByKey };
+    const selectedSchedules: Record<string, string> = { ...scheduleByKey };
     try {
       const raw = localStorage.getItem("alam_memanggil_selected_schedules");
       if (raw) {
@@ -535,23 +593,75 @@ export default function CheckoutPage() {
     }
 
     const rentalBookingsList: RentalBookingMeta[] = [];
-    for (const item of items) {
-      if (item.product.category === "RENTAL") {
-        const key = item.product.slug || item.product.id;
-        const found = rentalBookingsByKey[key] || rentalBookingsByKey[item.product.id];
-        if (found) {
-          rentalBookingsList.push({
-            ...found,
-            productId: item.product.id,
-          });
-        }
-      }
-    }
+    const allScheduleNotesList: string[] = [];
 
-    const rentalLines = rentalBookingsList.map(
-      (rb) =>
-        `Rental ${rb.productId}: ${rb.scheduleLabel} | Batas Kembali: ${rb.returnDate} | Tanggal Sewa Terbooking: ${rb.datesToLock.join(", ")}`
-    );
+    const normalizedOrderItemsPayload = items.map((item) => {
+      const key = item.product.slug || item.product.id;
+
+      if (item.product.category === "RENTAL") {
+        const unitQty = getRentalQty(item);
+        const nights = getRentalNights(item);
+        const found =
+          rentalBookingsByKey[key] || rentalBookingsByKey[item.product.id];
+
+        const fallbackLabel =
+          selectedSchedules[key] ||
+          selectedSchedules[item.product.id] ||
+          item.selectedSchedule ||
+          `Rental ${nights} Malam (${unitQty} Item)`;
+
+        const rentalMeta: RentalBookingMeta = found
+          ? {
+              ...found,
+              productId: item.product.id,
+              qty: unitQty,
+              totalBilledNights: nights,
+              scheduleLabel: found.scheduleLabel || fallbackLabel,
+            }
+          : {
+              productId: item.product.id,
+              rentalStartDate: "",
+              rentalEndDate: "",
+              pickupDate: "",
+              returnDate: "",
+              baseNights: nights,
+              extraChargeNights: 0,
+              totalBilledNights: nights,
+              datesToLock: [],
+              qty: unitQty,
+              scheduleLabel: fallbackLabel,
+            };
+
+        rentalBookingsList.push(rentalMeta);
+        selectedSchedules[key] = rentalMeta.scheduleLabel;
+        selectedSchedules[item.product.id] = rentalMeta.scheduleLabel;
+        allScheduleNotesList.push(
+          `${item.product.title}: ${rentalMeta.scheduleLabel}`
+        );
+
+        return {
+          productId: item.product.id,
+          quantity: unitQty,
+          nights,
+          selectedSchedule: rentalMeta.scheduleLabel,
+        };
+      }
+
+      const schedLabel =
+        selectedSchedules[key] ||
+        selectedSchedules[item.product.id] ||
+        item.selectedSchedule ||
+        "";
+      if (schedLabel) {
+        allScheduleNotesList.push(`${item.product.title}: ${schedLabel}`);
+      }
+
+      return {
+        productId: item.product.id,
+        quantity: getItemMultiplier(item),
+        selectedSchedule: schedLabel || null,
+      };
+    });
 
     const agreedAt = new Date().toLocaleString("id-ID");
     const rulesSummary = items
@@ -563,7 +673,9 @@ export default function CheckoutPage() {
 
     const combinedNotes = [
       notes.trim(),
-      ...rentalLines,
+      allScheduleNotesList.length > 0
+        ? `Jadwal: ${allScheduleNotesList.join(" | ")}`
+        : "",
       `Persetujuan Rules: DISETUJUI (${rulesSummary})`,
     ]
       .filter(Boolean)
@@ -579,6 +691,7 @@ export default function CheckoutPage() {
           bankName,
           paymentProof,
           notes: combinedNotes,
+          items: normalizedOrderItemsPayload,
           selectedSchedules,
           outboundBookings,
           rentalBookings: rentalBookingsList,
@@ -928,18 +1041,20 @@ export default function CheckoutPage() {
                 const key = item.product.slug || item.product.id;
                 const isOutbound = item.product.category === "OUTBOUND";
                 const isRental = item.product.category === "RENTAL";
-                const rentMeta =
-                  rentalBookingsByKey[key] || rentalBookingsByKey[item.product.id];
+                const nights = getRentalNights(item);
+                const unitQty = getRentalQty(item);
                 const multiplier = getItemMultiplier(item);
-                const sched = scheduleByKey[key];
+                const sched =
+                  scheduleByKey[key] ||
+                  scheduleByKey[item.product.id] ||
+                  item.selectedSchedule;
 
                 const unitDesc = isOutbound
                   ? `${multiplier} Hari × ${formatRupiah(item.product.price)}`
                   : isRental
-                  ? `${Math.max(1, rentMeta?.totalBilledNights || 1)} Malam × ${Math.max(
-                      1,
-                      rentMeta?.qty || item.paxCount || 1
-                    )} Unit × ${formatRupiah(item.product.price)}`
+                  ? `${unitQty} Item × ${nights} Malam × ${formatRupiah(
+                      item.product.price
+                    )} / item`
                   : `${multiplier} Pax × ${formatRupiah(item.product.price)}`;
 
                 return (
@@ -947,21 +1062,21 @@ export default function CheckoutPage() {
                     key={item.id}
                     className="flex justify-between items-start gap-2 text-xs"
                   >
-                    <div>
+                    <div className="min-w-0">
                       <p className="font-black text-neutral-950">
                         {item.product.title}
                       </p>
-                      <p className="text-neutral-800 font-semibold text-[11px]">
+                      <p className="text-neutral-800 font-semibold text-[11px] mt-0.5">
                         {unitDesc}
                       </p>
                       {sched && (
-                        <p className="inline-flex items-center gap-1 text-[11px] font-bold text-neutral-950 mt-0.5">
-                          <Calendar className="w-3 h-3 text-[#6F4E37]" />
+                        <p className="inline-flex items-start gap-1 text-[11px] font-bold text-neutral-950 mt-0.5">
+                          <Calendar className="w-3 h-3 text-[#6F4E37] shrink-0 mt-0.5" />
                           <span>{sched}</span>
                         </p>
                       )}
                     </div>
-                    <p className="font-black text-neutral-950">
+                    <p className="font-black text-neutral-950 shrink-0">
                       {formatRupiah(item.product.price * multiplier)}
                     </p>
                   </div>
