@@ -568,31 +568,31 @@ function ProfileDashboardContent() {
   const getStatusBadge = (order: OrderType) => {
     if (isOrderApprovedOrDone(order)) {
       return (
-        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black bg-emerald-200 text-neutral-950">
-          <CheckCircle2 className="w-3.5 h-3.5" /> Selesai
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-black bg-emerald-200 text-neutral-950 w-fit shrink-0">
+          <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" /> Selesai
         </span>
       );
     }
 
     if (isRejectedByAdmin(order)) {
       return (
-        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black bg-rose-100 text-rose-950 border border-rose-300">
-          <AlertCircle className="w-3.5 h-3.5" /> Ditolak Admin
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-black bg-rose-100 text-rose-950 border border-rose-300 w-fit shrink-0">
+          <AlertCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" /> Ditolak Admin
         </span>
       );
     }
 
     if (isCancelledByCustomer(order.notes)) {
       return (
-        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black bg-neutral-200 text-neutral-950">
-          <Ban className="w-3.5 h-3.5" /> Dibatalkan
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-black bg-neutral-200 text-neutral-950 w-fit shrink-0">
+          <Ban className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" /> Dibatalkan
         </span>
       );
     }
 
     return (
-      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black bg-amber-100 text-neutral-950">
-        <Clock className="w-3.5 h-3.5" /> Menunggu Persetujuan Admin
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-black bg-amber-100 text-neutral-950 w-fit shrink-0">
+        <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" /> Menunggu Persetujuan
       </span>
     );
   };
@@ -1089,63 +1089,64 @@ function ProfileDashboardContent() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 py-10 px-4 text-neutral-950">
+    <div className="min-h-screen bg-neutral-50 py-5 sm:py-10 px-3 sm:px-4 text-neutral-950 overflow-x-hidden">
       <div className="max-w-5xl mx-auto">
-        <div className="bg-white rounded-3xl border border-neutral-300 p-6 mb-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-[#6F4E37] text-white flex items-center justify-center text-xl font-black shadow">
+        {/* Header Profil & Tab Utama */}
+        <div className="bg-white rounded-2xl sm:rounded-3xl border border-neutral-300 p-4 sm:p-6 mb-4 sm:mb-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+            <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-2xl bg-[#6F4E37] text-white flex items-center justify-center text-lg sm:text-xl font-black shadow shrink-0">
               {(name || profile?.name || "U")[0]?.toUpperCase()}
             </div>
-            <div>
-              <h1 className="text-xl font-black text-neutral-950">
+            <div className="min-w-0">
+              <h1 className="text-base sm:text-xl font-black text-neutral-950 truncate">
                 {name || profile?.name || "Pengguna Alam Memanggil"}
               </h1>
-              <p className="text-xs font-semibold text-neutral-700">
+              <p className="text-[11px] sm:text-xs font-semibold text-neutral-700 truncate">
                 {profile?.email}
               </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-1.5 sm:gap-2">
             <button
               type="button"
               onClick={() => setActiveTab("orders")}
-              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black transition cursor-pointer ${
+              className={`inline-flex items-center justify-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-2 rounded-full text-[11px] sm:text-xs font-black transition cursor-pointer ${
                 activeTab === "orders"
                   ? "bg-[#6F4E37] text-white shadow"
                   : "bg-neutral-200 text-neutral-950 hover:bg-neutral-300"
               }`}
             >
-              <Package className="w-4 h-4" />
-              <span>Pesanan Saya</span>
+              <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <span className="truncate">Pesanan</span>
             </button>
 
             <button
               type="button"
               onClick={() => setActiveTab("profile")}
-              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black transition cursor-pointer ${
+              className={`inline-flex items-center justify-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-2 rounded-full text-[11px] sm:text-xs font-black transition cursor-pointer ${
                 activeTab === "profile"
                   ? "bg-[#6F4E37] text-white shadow"
                   : "bg-neutral-200 text-neutral-950 hover:bg-neutral-300"
               }`}
             >
-              <UserCircle className="w-4 h-4" />
-              <span>Profil & Sandi</span>
+              <UserCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <span className="truncate">Profil</span>
             </button>
 
             <button
               type="button"
               onClick={() => setActiveTab("notifications")}
-              className={`relative inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black transition cursor-pointer ${
+              className={`relative inline-flex items-center justify-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-2 rounded-full text-[11px] sm:text-xs font-black transition cursor-pointer ${
                 activeTab === "notifications"
                   ? "bg-[#6F4E37] text-white shadow"
                   : "bg-neutral-200 text-neutral-950 hover:bg-neutral-300"
               }`}
             >
-              <Bell className="w-4 h-4" />
-              <span>Notifikasi</span>
+              <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <span className="truncate">Notif</span>
               {unreadCount > 0 && (
-                <span className="ml-0.5 px-1.5 py-0.5 text-[10px] rounded-full bg-emerald-500 text-black font-black">
+                <span className="px-1.5 py-0.5 text-[10px] rounded-full bg-emerald-500 text-black font-black leading-none">
                   {unreadCount}
                 </span>
               )}
@@ -1154,8 +1155,9 @@ function ProfileDashboardContent() {
         </div>
 
         {activeTab === "orders" && (
-          <div className="bg-white rounded-3xl border border-neutral-300 shadow-sm overflow-hidden">
-            <div className="grid grid-cols-2 sm:grid-cols-4 border-b border-neutral-200 bg-neutral-50/70">
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-neutral-300 shadow-sm overflow-hidden">
+            {/* Sub-tab Pesanan */}
+            <div className="grid grid-cols-4 border-b border-neutral-200 bg-neutral-50/70">
               {customerTabs.map((t) => {
                 const isSelected = orderFilterTab === t.key;
                 return (
@@ -1163,16 +1165,16 @@ function ProfileDashboardContent() {
                     key={t.key}
                     type="button"
                     onClick={() => setOrderFilterTab(t.key)}
-                    className={`relative py-3.5 px-3 text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                    className={`relative py-2.5 sm:py-3.5 px-1.5 sm:px-3 text-[11px] sm:text-xs font-black transition flex items-center justify-center gap-1 cursor-pointer ${
                       isSelected
                         ? "text-[#6F4E37] bg-white"
                         : "text-neutral-700 hover:text-neutral-950 hover:bg-neutral-100/70"
                     }`}
                   >
-                    <span>{t.label}</span>
+                    <span className="truncate">{t.label}</span>
                     {t.count > 0 && (
                       <span
-                        className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${
+                        className={`px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black leading-none ${
                           isSelected
                             ? "bg-[#6F4E37] text-white"
                             : "bg-neutral-200 text-neutral-900"
@@ -1190,20 +1192,20 @@ function ProfileDashboardContent() {
             </div>
 
             {orderFilterTab === "REVIEWS" ? (
-              <div className="p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="p-3 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
                 <form
                   onSubmit={handleSubmitReview}
-                  className="lg:col-span-7 bg-neutral-50/70 rounded-2xl border border-neutral-200 p-5 space-y-4 h-fit"
+                  className="lg:col-span-7 bg-neutral-50/70 rounded-2xl border border-neutral-200 p-3.5 sm:p-5 space-y-3 h-fit"
                 >
-                  <div className="flex items-center gap-2 border-b border-neutral-200 pb-3">
-                    <span className="w-8 h-8 rounded-xl bg-amber-100 text-[#6F4E37] flex items-center justify-center">
+                  <div className="flex items-center gap-2 border-b border-neutral-200 pb-2.5">
+                    <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-100 text-[#6F4E37] flex items-center justify-center shrink-0">
                       <Sparkles className="w-4 h-4" />
                     </span>
                     <div>
-                      <h2 className="text-sm font-black text-neutral-950">
+                      <h2 className="text-xs sm:text-sm font-black text-neutral-950">
                         Beri Ulasan Pesanan
                       </h2>
-                      <p className="text-[11px] font-medium text-neutral-600">
+                      <p className="text-[10px] sm:text-[11px] font-medium text-neutral-600">
                         Pilih kode orderan, beri rating bintang, dan tulis ulasanmu
                       </p>
                     </div>
@@ -1211,7 +1213,7 @@ function ProfileDashboardContent() {
 
                   {reviewMsg && (
                     <div
-                      className={`p-3 rounded-xl text-xs font-bold flex items-center gap-2 ${
+                      className={`p-2.5 sm:p-3 rounded-xl text-xs font-bold flex items-center gap-2 ${
                         reviewMsg.type === "ok"
                           ? "bg-emerald-100 text-neutral-950 border border-emerald-400"
                           : "bg-red-100 text-neutral-950 border border-red-400"
@@ -1227,7 +1229,7 @@ function ProfileDashboardContent() {
                   )}
 
                   <div>
-                    <label className="block text-xs font-black text-neutral-950 mb-1">
+                    <label className="block text-[11px] sm:text-xs font-black text-neutral-950 mb-1">
                       Pesanan yang Diulas
                     </label>
                     {reviewableOrders.length > 0 ? (
@@ -1242,7 +1244,7 @@ function ProfileDashboardContent() {
                             orderCode: found?.orderCode || "Pesanan",
                           });
                         }}
-                        className="w-full bg-white border border-neutral-400 rounded-xl px-3.5 py-2.5 text-xs font-bold text-neutral-950 focus:outline-none focus:ring-2 focus:ring-neutral-950"
+                        className="w-full bg-white border border-neutral-400 rounded-xl px-3 py-2 text-xs font-bold text-neutral-950 focus:outline-none focus:ring-2 focus:ring-neutral-950"
                       >
                         {reviewableOrders.map((ord) => (
                           <option key={ord.orderId} value={ord.orderId}>
@@ -1261,22 +1263,22 @@ function ProfileDashboardContent() {
                           }))
                         }
                         placeholder="Kode pesanan"
-                        className="w-full bg-white border border-neutral-400 rounded-xl px-3.5 py-2.5 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-950"
+                        className="w-full bg-white border border-neutral-400 rounded-xl px-3 py-2 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-950"
                       />
                     )}
                   </div>
 
-                  <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-black text-neutral-950">
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl sm:rounded-2xl p-3 sm:p-3.5">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="text-[11px] sm:text-xs font-black text-neutral-950">
                         Rating Bintang
                       </span>
-                      <span className="text-xs font-black text-[#6F4E37]">
+                      <span className="text-[11px] sm:text-xs font-black text-[#6F4E37]">
                         {ratingLabelMap[hoverRating || rating]} (
                         {hoverRating || rating}/5)
                       </span>
                     </div>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1">
                       {[1, 2, 3, 4, 5].map((starValue) => {
                         const active = starValue <= (hoverRating || rating);
                         return (
@@ -1287,10 +1289,10 @@ function ProfileDashboardContent() {
                             onMouseLeave={() => setHoverRating(0)}
                             onClick={() => setRating(starValue)}
                             aria-label={`Beri bintang ${starValue}`}
-                            className="p-1 transition cursor-pointer hover:scale-110"
+                            className="p-0.5 sm:p-1 transition cursor-pointer hover:scale-110"
                           >
                             <Star
-                              className={`w-7 h-7 ${
+                              className={`w-6 h-6 sm:w-7 sm:h-7 ${
                                 active
                                   ? "text-amber-400 fill-amber-400"
                                   : "text-neutral-300 fill-neutral-100"
@@ -1303,10 +1305,10 @@ function ProfileDashboardContent() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-black text-neutral-950 mb-2">
+                    <label className="block text-[11px] sm:text-xs font-black text-neutral-950 mb-1.5">
                       Sorotan Pengalaman
                     </label>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5">
                       {QUICK_REVIEW_TAGS.map((tag) => {
                         const picked = selectedTags.includes(tag);
                         return (
@@ -1314,7 +1316,7 @@ function ProfileDashboardContent() {
                             key={tag}
                             type="button"
                             onClick={() => toggleReviewTag(tag)}
-                            className={`px-3 py-1.5 rounded-full text-xs font-bold border transition cursor-pointer ${
+                            className={`px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold border transition cursor-pointer ${
                               picked
                                 ? "bg-[#6F4E37] text-white border-[#6F4E37]"
                                 : "bg-white text-neutral-800 border-neutral-300 hover:bg-neutral-100"
@@ -1328,16 +1330,16 @@ function ProfileDashboardContent() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-black text-neutral-950 mb-1">
+                    <label className="block text-[11px] sm:text-xs font-black text-neutral-950 mb-1">
                       Komentar Ulasan *
                     </label>
                     <textarea
-                      rows={4}
+                      rows={3}
                       required
                       value={reviewComment}
                       onChange={(e) => setReviewComment(e.target.value)}
                       placeholder="Ceritakan pengalaman pesanan atau pelayanan tim..."
-                      className="w-full bg-white border border-neutral-400 rounded-xl px-3.5 py-2.5 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-950"
+                      className="w-full bg-white border border-neutral-400 rounded-xl px-3 py-2 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-950"
                     />
                   </div>
 
@@ -1349,14 +1351,14 @@ function ProfileDashboardContent() {
                   </button>
                 </form>
 
-                <div className="lg:col-span-5 bg-neutral-50/70 rounded-2xl border border-neutral-200 p-5 space-y-3 h-fit">
-                  <h3 className="text-xs font-black text-neutral-950 uppercase tracking-wider border-b border-neutral-200 pb-2.5">
+                <div className="lg:col-span-5 bg-neutral-50/70 rounded-2xl border border-neutral-200 p-3.5 sm:p-5 space-y-2.5 h-fit">
+                  <h3 className="text-xs font-black text-neutral-950 uppercase tracking-wider border-b border-neutral-200 pb-2">
                     Ulasan Saya ({reviews.length})
                   </h3>
 
                   {reviews.length === 0 ? (
-                    <div className="py-10 text-center space-y-2">
-                      <Star className="w-10 h-10 text-neutral-300 mx-auto" />
+                    <div className="py-8 text-center space-y-1.5">
+                      <Star className="w-9 h-9 text-neutral-300 mx-auto" />
                       <p className="text-xs font-black text-neutral-900">
                         Belum ada ulasan
                       </p>
@@ -1365,18 +1367,18 @@ function ProfileDashboardContent() {
                       </p>
                     </div>
                   ) : (
-                    <div className="space-y-3 max-h-[480px] overflow-y-auto pr-1">
+                    <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
                       {reviews.map((rev) => (
                         <div
                           key={rev.id}
-                          className="p-3.5 rounded-xl border border-neutral-200 bg-white space-y-2 text-xs"
+                          className="p-3 rounded-xl border border-neutral-200 bg-white space-y-1.5 text-xs"
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div>
                               <p className="font-black text-neutral-950">
                                 Pesanan {rev.orderCode}
                               </p>
-                              <div className="flex items-center gap-1 mt-1">
+                              <div className="flex items-center gap-0.5 mt-0.5">
                                 {[1, 2, 3, 4, 5].map((s) => (
                                   <Star
                                     key={s}
@@ -1389,7 +1391,7 @@ function ProfileDashboardContent() {
                                 ))}
                               </div>
                             </div>
-                            <span className="text-[11px] font-medium text-neutral-600">
+                            <span className="text-[10px] sm:text-[11px] font-medium text-neutral-600">
                               {new Date(rev.createdAt).toLocaleDateString(
                                 "id-ID"
                               )}
@@ -1397,7 +1399,7 @@ function ProfileDashboardContent() {
                           </div>
 
                           {rev.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5">
+                            <div className="flex flex-wrap gap-1">
                               {rev.tags.map((t) => (
                                 <span
                                   key={t}
@@ -1419,14 +1421,14 @@ function ProfileDashboardContent() {
                 </div>
               </div>
             ) : (
-              <div className="p-6 space-y-4">
+              <div className="p-2.5 sm:p-6 space-y-2.5 sm:space-y-4 bg-neutral-100/60 sm:bg-white">
                 {cancelErrorMsg && (
-                  <div className="p-3.5 rounded-xl bg-red-100 border border-red-400 text-xs font-bold text-neutral-950 flex items-center justify-between gap-2">
+                  <div className="p-2.5 sm:p-3 rounded-xl bg-red-100 border border-red-400 text-xs font-bold text-neutral-950 flex items-center justify-between gap-2">
                     <span>{cancelErrorMsg}</span>
                     <button
                       type="button"
                       onClick={() => setCancelErrorMsg(null)}
-                      className="text-xs font-black underline cursor-pointer"
+                      className="text-xs font-black underline cursor-pointer shrink-0"
                     >
                       Tutup
                     </button>
@@ -1434,12 +1436,12 @@ function ProfileDashboardContent() {
                 )}
 
                 {loadingOrders ? (
-                  <div className="flex justify-center py-16">
+                  <div className="flex justify-center py-14">
                     <Loader2 className="w-8 h-8 animate-spin text-[#6F4E37]" />
                   </div>
                 ) : filteredOrders.length === 0 ? (
-                  <div className="py-12 text-center">
-                    <Package className="w-12 h-12 text-neutral-400 mx-auto mb-3" />
+                  <div className="py-10 px-4 text-center bg-white rounded-2xl sm:rounded-none">
+                    <Package className="w-11 h-11 text-neutral-400 mx-auto mb-2.5" />
                     <p className="text-sm font-black text-neutral-950">
                       Tidak ada pesanan pada tab ini
                     </p>
@@ -1456,20 +1458,25 @@ function ProfileDashboardContent() {
                     return (
                       <div
                         key={order.id}
-                        className="bg-white rounded-2xl border border-neutral-300 p-5 shadow-2xs space-y-4"
+                        className="bg-white rounded-xl sm:rounded-2xl border border-neutral-200 sm:border-neutral-300 p-3 sm:p-5 shadow-2xs space-y-2.5 sm:space-y-4"
                       >
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-neutral-200 pb-3.5">
-                          <div>
-                            <p className="text-xs font-black text-neutral-950">
-                              Pesanan #{order.id.slice(-6).toUpperCase()}
-                            </p>
-                            <p className="text-xs font-medium text-neutral-700">
-                              Dibuat:{" "}
+                        {/* Top Bar ala Shopee: Kode + Tanggal di Kiri, Status di Kanan */}
+                        <div className="flex items-center justify-between gap-2 border-b border-neutral-100 sm:border-neutral-200 pb-2 sm:pb-3.5">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[10px] font-black uppercase px-1.5 py-0.5 rounded bg-amber-100 text-[#6F4E37] sm:hidden">
+                                ORDER
+                              </span>
+                              <p className="text-xs font-black text-neutral-950 truncate">
+                                #{order.id.slice(-6).toUpperCase()}
+                              </p>
+                            </div>
+                            <p className="text-[10px] sm:text-xs font-medium text-neutral-600 sm:text-neutral-700 mt-0.5">
                               {new Date(order.createdAt).toLocaleDateString(
                                 "id-ID",
                                 {
                                   day: "numeric",
-                                  month: "long",
+                                  month: "short",
                                   year: "numeric",
                                 }
                               )}
@@ -1479,15 +1486,16 @@ function ProfileDashboardContent() {
                         </div>
 
                         {rejectedByAdmin && (
-                          <div className="bg-rose-50 border border-rose-300 rounded-xl p-3 text-xs font-bold text-rose-950 flex items-center gap-2">
-                            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                            <span>
-                              Tidak sesuai karena ditolak admin. Silakan upload ulang bukti transfer atau batalkan pesanan.
+                          <div className="bg-rose-50 border border-rose-200 sm:border-rose-300 rounded-lg sm:rounded-xl px-2.5 py-2 sm:p-3 text-[11px] sm:text-xs font-bold text-rose-950 flex items-start sm:items-center gap-1.5 sm:gap-2">
+                            <AlertCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-600 shrink-0 mt-0.5 sm:mt-0" />
+                            <span className="leading-snug">
+                              Ditolak admin. Upload ulang bukti TF atau batalkan pesanan.
                             </span>
                           </div>
                         )}
 
-                        <div className="space-y-2.5">
+                        {/* Daftar Item Ringkas */}
+                        <div className="space-y-1.5 sm:space-y-2">
                           {order.items.map((item) => {
                             const unitLabel = getItemUnitLabel(
                               item.product.category
@@ -1504,25 +1512,25 @@ function ProfileDashboardContent() {
                             return (
                               <div
                                 key={item.id}
-                                className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 text-xs bg-neutral-50/90 p-3 rounded-xl border border-neutral-200/80"
+                                className="flex items-start justify-between gap-2 text-xs bg-neutral-50 p-2 sm:p-3 rounded-lg sm:rounded-xl border border-neutral-100 sm:border-neutral-200/80"
                               >
                                 <div className="min-w-0 flex-1">
-                                  <p className="font-bold text-neutral-950 leading-snug">
+                                  <p className="text-xs font-bold text-neutral-950 line-clamp-1 sm:line-clamp-none leading-snug">
                                     {item.product.title}{" "}
-                                    <span className="text-neutral-700 font-semibold">
-                                      ({item.quantity} {unitLabel})
+                                    <span className="text-[11px] text-neutral-600 font-semibold">
+                                      x{item.quantity} {unitLabel}
                                     </span>
                                   </p>
                                   {itemSched && (
-                                    <div className="mt-1.5 flex items-start gap-1.5 text-[11px] font-bold text-[#6F4E37] leading-snug">
-                                      <Calendar className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                                      <span className="break-words">
-                                        Jadwal: {itemSched}
+                                    <div className="mt-0.5 sm:mt-1 flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-[#6F4E37] leading-snug">
+                                      <Calendar className="w-3 h-3 shrink-0" />
+                                      <span className="truncate sm:whitespace-normal sm:break-words">
+                                        {itemSched}
                                       </span>
                                     </div>
                                   )}
                                 </div>
-                                <span className="font-black text-neutral-950 shrink-0 sm:pt-0.5">
+                                <span className="text-xs font-black text-neutral-950 shrink-0">
                                   {formatRupiah(itemSubtotal)}
                                 </span>
                               </div>
@@ -1531,11 +1539,11 @@ function ProfileDashboardContent() {
                         </div>
 
                         {noteLines.length > 0 && (
-                          <div className="bg-neutral-100/90 border border-neutral-300 rounded-xl p-3.5 text-xs font-medium text-neutral-900 space-y-1.5">
+                          <div className="bg-neutral-50 sm:bg-neutral-100/90 border border-neutral-200 sm:border-neutral-300 rounded-lg sm:rounded-xl px-2.5 py-2 sm:p-3.5 text-[10px] sm:text-xs font-medium text-neutral-800 sm:text-neutral-900 space-y-0.5 sm:space-y-1">
                             {noteLines.map((line, idx) => (
                               <p
                                 key={idx}
-                                className="leading-relaxed break-words"
+                                className="leading-snug sm:leading-relaxed break-words line-clamp-2 sm:line-clamp-none"
                               >
                                 {line}
                               </p>
@@ -1543,26 +1551,27 @@ function ProfileDashboardContent() {
                           </div>
                         )}
 
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3.5 border-t border-dashed border-neutral-300">
-                          <div>
-                            <p className="text-xs font-semibold text-neutral-700">
-                              Total Pembayaran
+                        {/* Footer ala Shopee: Total sejajar kanan-kiri di HP, lalu deretan tombol ringkas */}
+                        <div className="pt-2 sm:pt-3.5 border-t border-neutral-100 sm:border-dashed sm:border-neutral-300 space-y-2.5 sm:space-y-0 sm:flex sm:items-center justify-between gap-3">
+                          <div className="flex items-center justify-between sm:block">
+                            <p className="text-[11px] sm:text-xs font-semibold text-neutral-600 sm:text-neutral-700">
+                              Total Pesanan
                             </p>
-                            <p className="text-base font-black text-[#6F4E37]">
+                            <p className="text-sm sm:text-base font-black text-[#6F4E37]">
                               {formatRupiah(order.totalAmount)}
                             </p>
                           </div>
 
-                          <div className="flex flex-wrap gap-2">
+                          <div className="flex items-center justify-end flex-wrap gap-1.5 sm:gap-2">
                             {rejectedByAdmin && (
                               <>
                                 <button
                                   type="button"
                                   onClick={() => openReuploadModal(order)}
-                                  className="inline-flex items-center justify-center gap-1.5 bg-amber-400 hover:bg-amber-500 text-black text-xs font-black px-4 py-2.5 rounded-full transition shadow cursor-pointer"
+                                  className="inline-flex items-center justify-center gap-1 bg-amber-400 hover:bg-amber-500 text-black text-[11px] sm:text-xs font-black px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full transition shadow-2xs cursor-pointer"
                                 >
-                                  <Pencil className="w-3.5 h-3.5 text-black" />
-                                  <span>Upload Ulang Bukti TF</span>
+                                  <Pencil className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-black" />
+                                  <span>Upload Ulang</span>
                                 </button>
 
                                 <button
@@ -1571,14 +1580,14 @@ function ProfileDashboardContent() {
                                   onClick={() =>
                                     handleCancelOrderByCustomer(order)
                                   }
-                                  className="inline-flex items-center justify-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black px-4 py-2.5 rounded-full transition shadow cursor-pointer disabled:opacity-70"
+                                  className="inline-flex items-center justify-center gap-1 bg-rose-600 hover:bg-rose-700 text-white text-[11px] sm:text-xs font-black px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full transition shadow-2xs cursor-pointer disabled:opacity-70"
                                 >
                                   {cancellingOrderId === order.id ? (
-                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    <Loader2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 animate-spin" />
                                   ) : (
-                                    <Ban className="w-3.5 h-3.5" />
+                                    <Ban className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                                   )}
-                                  <span>Batalkan Pesanan</span>
+                                  <span>Batalkan</span>
                                 </button>
                               </>
                             )}
@@ -1587,10 +1596,10 @@ function ProfileDashboardContent() {
                               <button
                                 type="button"
                                 onClick={() => handleOpenAccReceipt(order)}
-                                className="inline-flex items-center justify-center gap-1.5 bg-amber-100 hover:bg-amber-200 text-neutral-950 border border-amber-300 text-xs font-black px-4 py-2.5 rounded-full transition shadow-2xs cursor-pointer"
+                                className="inline-flex items-center justify-center gap-1 bg-amber-100 hover:bg-amber-200 text-neutral-950 border border-amber-300 text-[11px] sm:text-xs font-black px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full transition cursor-pointer"
                               >
-                                <Receipt className="w-3.5 h-3.5 text-[#6F4E37]" />
-                                <span>Lihat & Unduh Receipt</span>
+                                <Receipt className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#6F4E37]" />
+                                <span>Receipt</span>
                               </button>
                             )}
 
@@ -1606,10 +1615,10 @@ function ProfileDashboardContent() {
                                   });
                                   setOrderFilterTab("REVIEWS");
                                 }}
-                                className="inline-flex items-center justify-center gap-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-950 border border-neutral-300 text-xs font-black px-4 py-2.5 rounded-full transition cursor-pointer"
+                                className="inline-flex items-center justify-center gap-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-950 border border-neutral-300 text-[11px] sm:text-xs font-black px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full transition cursor-pointer"
                               >
-                                <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                                <span>Beri Ulasan</span>
+                                <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-500 fill-amber-500" />
+                                <span>Ulasan</span>
                               </button>
                             )}
 
@@ -1618,10 +1627,10 @@ function ProfileDashboardContent() {
                                 href={buildWaConfirmationUrl(order)}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-black text-xs font-black px-5 py-2.5 rounded-full transition shadow"
+                                className="inline-flex items-center justify-center gap-1 bg-emerald-500 hover:bg-emerald-600 text-black text-[11px] sm:text-xs font-black px-3 py-1.5 sm:px-4 sm:py-2 rounded-full transition shadow-2xs"
                               >
-                                <MessageCircle className="w-4 h-4 text-black" />
-                                <span>Chat WA Admin (Detail Otomatis)</span>
+                                <MessageCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-black" />
+                                <span>WA Admin</span>
                               </a>
                             )}
                           </div>
@@ -1636,18 +1645,18 @@ function ProfileDashboardContent() {
         )}
 
         {activeTab === "profile" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-6">
             <form
               onSubmit={handleSaveProfile}
-              className="bg-white rounded-2xl border border-neutral-300 p-6 shadow-sm space-y-4"
+              className="bg-white rounded-2xl border border-neutral-300 p-4 sm:p-6 shadow-sm space-y-3 sm:space-y-4"
             >
-              <h2 className="text-sm font-black text-neutral-950 uppercase tracking-wider">
+              <h2 className="text-xs sm:text-sm font-black text-neutral-950 uppercase tracking-wider">
                 Informasi Profil
               </h2>
 
               {profileMsg && (
                 <div
-                  className={`p-3 rounded-xl text-xs font-bold flex items-center gap-2 ${
+                  className={`p-2.5 sm:p-3 rounded-xl text-xs font-bold flex items-center gap-2 ${
                     profileMsg.type === "ok"
                       ? "bg-emerald-100 text-neutral-950 border border-emerald-400"
                       : "bg-red-100 text-neutral-950 border border-red-400"
@@ -1663,7 +1672,7 @@ function ProfileDashboardContent() {
               )}
 
               <div>
-                <label className="block text-xs font-black text-neutral-950 mb-1">
+                <label className="block text-[11px] sm:text-xs font-black text-neutral-950 mb-1">
                   Nama Lengkap
                 </label>
                 <input
@@ -1671,12 +1680,12 @@ function ProfileDashboardContent() {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-white border border-neutral-400 rounded-xl px-3.5 py-2.5 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-950"
+                  className="w-full bg-white border border-neutral-400 rounded-xl px-3 py-2 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-950"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-black text-neutral-950 mb-1">
+                <label className="block text-[11px] sm:text-xs font-black text-neutral-950 mb-1">
                   Nomor WhatsApp / HP
                 </label>
                 <input
@@ -1684,20 +1693,20 @@ function ProfileDashboardContent() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="08xxxxxxxxxx"
-                  className="w-full bg-white border border-neutral-400 rounded-xl px-3.5 py-2.5 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-950"
+                  className="w-full bg-white border border-neutral-400 rounded-xl px-3 py-2 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-950"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-black text-neutral-950 mb-1">
+                <label className="block text-[11px] sm:text-xs font-black text-neutral-950 mb-1">
                   Alamat Domisili
                 </label>
                 <textarea
-                  rows={3}
+                  rows={2}
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="Alamat lengkap Anda"
-                  className="w-full bg-white border border-neutral-400 rounded-xl px-3.5 py-2 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-950"
+                  className="w-full bg-white border border-neutral-400 rounded-xl px-3 py-2 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-950"
                 />
               </div>
 
@@ -1712,18 +1721,18 @@ function ProfileDashboardContent() {
 
             <form
               onSubmit={handleChangePassword}
-              className="bg-white rounded-2xl border border-neutral-300 p-6 shadow-sm space-y-4 h-fit"
+              className="bg-white rounded-2xl border border-neutral-300 p-4 sm:p-6 shadow-sm space-y-3 sm:space-y-4 h-fit"
             >
               <div className="flex items-center gap-2">
                 <KeyRound className="w-4 h-4 text-[#6F4E37]" />
-                <h2 className="text-sm font-black text-neutral-950 uppercase tracking-wider">
+                <h2 className="text-xs sm:text-sm font-black text-neutral-950 uppercase tracking-wider">
                   Ganti Kata Sandi
                 </h2>
               </div>
 
               {passMsg && (
                 <div
-                  className={`p-3 rounded-xl text-xs font-bold flex items-center gap-2 ${
+                  className={`p-2.5 sm:p-3 rounded-xl text-xs font-bold flex items-center gap-2 ${
                     passMsg.type === "ok"
                       ? "bg-emerald-100 text-neutral-950 border border-emerald-400"
                       : "bg-red-100 text-neutral-950 border border-red-400"
@@ -1739,7 +1748,7 @@ function ProfileDashboardContent() {
               )}
 
               <div>
-                <label className="block text-xs font-black text-neutral-950 mb-1">
+                <label className="block text-[11px] sm:text-xs font-black text-neutral-950 mb-1">
                   Kata Sandi Saat Ini
                 </label>
                 <input
@@ -1747,12 +1756,12 @@ function ProfileDashboardContent() {
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   placeholder="Masukkan kata sandi lama"
-                  className="w-full bg-white border border-neutral-400 rounded-xl px-3.5 py-2.5 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-950"
+                  className="w-full bg-white border border-neutral-400 rounded-xl px-3 py-2 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-950"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-black text-neutral-950 mb-1">
+                <label className="block text-[11px] sm:text-xs font-black text-neutral-950 mb-1">
                   Kata Sandi Baru
                 </label>
                 <input
@@ -1761,12 +1770,12 @@ function ProfileDashboardContent() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Minimal 6 karakter"
-                  className="w-full bg-white border border-neutral-400 rounded-xl px-3.5 py-2.5 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-950"
+                  className="w-full bg-white border border-neutral-400 rounded-xl px-3 py-2 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-950"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-black text-neutral-950 mb-1">
+                <label className="block text-[11px] sm:text-xs font-black text-neutral-950 mb-1">
                   Konfirmasi Kata Sandi Baru
                 </label>
                 <input
@@ -1775,7 +1784,7 @@ function ProfileDashboardContent() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Ulangi kata sandi baru"
-                  className="w-full bg-white border border-neutral-400 rounded-xl px-3.5 py-2.5 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-950"
+                  className="w-full bg-white border border-neutral-400 rounded-xl px-3 py-2 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-950"
                 />
               </div>
 
@@ -1791,18 +1800,18 @@ function ProfileDashboardContent() {
         )}
 
         {activeTab === "notifications" && (
-          <div className="bg-white rounded-2xl border border-neutral-300 p-6 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-neutral-200 pb-3">
-              <h2 className="text-sm font-black text-neutral-950 uppercase tracking-wider">
+          <div className="bg-white rounded-2xl border border-neutral-300 p-3.5 sm:p-6 shadow-sm space-y-3 sm:space-y-4">
+            <div className="flex items-center justify-between gap-2 border-b border-neutral-200 pb-2.5 sm:pb-3">
+              <h2 className="text-xs sm:text-sm font-black text-neutral-950 uppercase tracking-wider">
                 Pusat Notifikasi
               </h2>
               {unreadCount > 0 && (
                 <button
                   type="button"
                   onClick={handleMarkAllRead}
-                  className="text-xs font-black text-neutral-950 underline cursor-pointer"
+                  className="text-[11px] sm:text-xs font-black text-neutral-950 underline cursor-pointer shrink-0"
                 >
-                  Tandai semua sudah dibaca
+                  Tandai semua dibaca
                 </button>
               )}
             </div>
@@ -1816,7 +1825,7 @@ function ProfileDashboardContent() {
                 Belum ada notifikasi untuk akun Anda.
               </p>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-2.5">
                 {notifications.map((notif) => {
                   const isRejected = notif.kind === "REJECTED";
                   const isCompleted = notif.kind === "COMPLETED";
@@ -1825,7 +1834,7 @@ function ProfileDashboardContent() {
                     <div
                       key={notif.id}
                       onClick={() => handleMarkSingleRead(notif.id)}
-                      className={`p-4 rounded-xl border text-xs cursor-pointer transition ${
+                      className={`p-2.5 sm:p-4 rounded-xl border text-xs cursor-pointer transition ${
                         isRejected
                           ? "bg-rose-50/90 border-rose-300 text-rose-950"
                           : isCompleted
@@ -1836,32 +1845,32 @@ function ProfileDashboardContent() {
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 min-w-0">
                           {isRejected ? (
-                            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                            <AlertCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-600 shrink-0" />
                           ) : isCompleted ? (
-                            <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
+                            <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-700 shrink-0" />
                           ) : (
-                            <Clock className="w-4 h-4 text-amber-700 shrink-0" />
+                            <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-700 shrink-0" />
                           )}
-                          <p className="font-black text-neutral-950">
+                          <p className="text-xs font-black text-neutral-950 truncate">
                             {notif.title}
                           </p>
                           {!notif.isRead && (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-[#6F4E37] text-white">
+                            <span className="px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black bg-[#6F4E37] text-white shrink-0">
                               Baru
                             </span>
                           )}
                         </div>
-                        <span className="text-xs font-medium text-neutral-700">
+                        <span className="text-[10px] sm:text-[11px] font-medium text-neutral-700 shrink-0">
                           {new Date(notif.createdAt).toLocaleDateString("id-ID")}
                         </span>
                       </div>
-                      <p className="mt-1.5 font-medium leading-relaxed">
+                      <p className="mt-1 text-[11px] sm:text-xs font-medium leading-snug sm:leading-relaxed">
                         {notif.message}
                       </p>
                       {isRejected && (
-                        <div className="mt-2.5">
+                        <div className="mt-2">
                           <button
                             type="button"
                             onClick={(e) => {
@@ -1871,7 +1880,7 @@ function ProfileDashboardContent() {
                             }}
                             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-black bg-rose-600 hover:bg-rose-700 text-white cursor-pointer"
                           >
-                            <span>Cek & Upload Ulang di Tab Konfirmasi</span>
+                            <span>Cek & Upload Ulang di Konfirmasi</span>
                           </button>
                         </div>
                       )}
@@ -1891,12 +1900,12 @@ function ProfileDashboardContent() {
       />
 
       {editingOrder && (
-        <div className="fixed inset-0 z-50 bg-black/55 backdrop-blur-xs flex items-center justify-center p-4 text-neutral-950">
+        <div className="fixed inset-0 z-50 bg-black/55 backdrop-blur-xs flex items-center justify-center p-3.5 sm:p-4 text-neutral-950">
           <form
             onSubmit={handleSubmitReupload}
-            className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-neutral-300 space-y-4"
+            className="bg-white rounded-2xl sm:rounded-3xl max-w-md w-full p-4 sm:p-6 shadow-2xl border border-neutral-300 space-y-3.5 max-h-[90vh] overflow-y-auto"
           >
-            <div className="flex items-center justify-between border-b border-neutral-200 pb-3">
+            <div className="flex items-center justify-between border-b border-neutral-200 pb-2.5">
               <h3 className="text-sm font-black text-neutral-950">
                 Upload Ulang Bukti TF (#
                 {editingOrder.id.slice(-6).toUpperCase()})
@@ -1926,7 +1935,7 @@ function ProfileDashboardContent() {
                 value={reuploadSenderName}
                 onChange={(e) => setReuploadSenderName(e.target.value)}
                 placeholder="Contoh: Budi Santoso"
-                className="w-full bg-white border border-neutral-400 rounded-xl px-3.5 py-2 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-950"
+                className="w-full bg-white border border-neutral-400 rounded-xl px-3 py-2 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-950"
               />
             </div>
 
@@ -1940,7 +1949,7 @@ function ProfileDashboardContent() {
                 value={reuploadBankName}
                 onChange={(e) => setReuploadBankName(e.target.value)}
                 placeholder="Contoh: BCA / Mandiri / BRI"
-                className="w-full bg-white border border-neutral-400 rounded-xl px-3.5 py-2 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-950"
+                className="w-full bg-white border border-neutral-400 rounded-xl px-3 py-2 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-950"
               />
             </div>
 
@@ -1948,9 +1957,9 @@ function ProfileDashboardContent() {
               <label className="block text-xs font-black text-neutral-950 mb-1">
                 Upload Bukti Transfer Baru *
               </label>
-              <label className="flex flex-col items-center justify-center border-2 border-dashed border-neutral-400 hover:border-neutral-950 rounded-2xl p-4 cursor-pointer bg-neutral-50">
+              <label className="flex flex-col items-center justify-center border-2 border-dashed border-neutral-400 hover:border-neutral-950 rounded-2xl p-3.5 cursor-pointer bg-neutral-50 text-center">
                 <Upload className="w-5 h-5 text-neutral-950 mb-1" />
-                <span className="text-xs font-black text-neutral-950">
+                <span className="text-xs font-black text-neutral-950 break-all">
                   {reuploadFileName ||
                     "Klik untuk pilih gambar bukti transfer baru"}
                 </span>
@@ -1966,7 +1975,7 @@ function ProfileDashboardContent() {
                 <img
                   src={reuploadProof}
                   alt="Preview Bukti Transfer Baru"
-                  className="mt-2 max-h-40 rounded-xl border border-neutral-300 object-contain bg-neutral-100 p-1.5"
+                  className="mt-2 max-h-36 rounded-xl border border-neutral-300 object-contain bg-neutral-100 p-1.5"
                 />
               )}
             </div>
@@ -1980,11 +1989,11 @@ function ProfileDashboardContent() {
                 value={reuploadNotes}
                 onChange={(e) => setReuploadNotes(e.target.value)}
                 placeholder="Contoh: Sudah transfer ulang sesuai nominal"
-                className="w-full bg-white border border-neutral-400 rounded-xl px-3.5 py-2 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-950"
+                className="w-full bg-white border border-neutral-400 rounded-xl px-3 py-2 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-950"
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex justify-end gap-2 pt-1.5">
               <button
                 type="button"
                 onClick={() => setEditingOrder(null)}

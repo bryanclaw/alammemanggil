@@ -7,6 +7,7 @@ import Recommendation from "@/components/sections/home/Recommendation";
 import Testimonial from "@/components/sections/home/Testimonial";
 import Expedition from "@/components/sections/home/Expedition";
 import CTA from "@/components/sections/home/CTA";
+import Footer from "@/components/layout/Footer";
 
 export default function Home() {
   return (
@@ -20,6 +21,7 @@ export default function Home() {
       <Testimonial />
       <Expedition />
       <CTA />
+      <Footer />
     </>
   );
 }

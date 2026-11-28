@@ -16,6 +16,8 @@ import {
   AlertCircle,
   Tag,
   X,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 interface RuleEntry {
@@ -160,6 +162,9 @@ export default function CheckoutPage() {
     useState<AppliedDiscountData | null>(null);
 
   const [agreedProductIds, setAgreedProductIds] = useState<
+    Record<string, boolean>
+  >({});
+  const [expandedRulesIds, setExpandedRulesIds] = useState<
     Record<string, boolean>
   >({});
 
@@ -362,6 +367,10 @@ export default function CheckoutPage() {
       next[item.id] = checked;
     }
     setAgreedProductIds(next);
+  };
+
+  const toggleExpandRules = (itemId: string) => {
+    setExpandedRulesIds((prev) => ({ ...prev, [itemId]: !prev[itemId] }));
   };
 
   const getRentalQty = useCallback(
@@ -735,9 +744,9 @@ export default function CheckoutPage() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center px-4">
-        <div className="bg-white rounded-3xl border border-neutral-200 p-8 max-w-md w-full text-center shadow-sm">
-          <h1 className="text-lg font-black text-neutral-950">
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center px-3.5 sm:px-4">
+        <div className="bg-white rounded-3xl border border-neutral-200 p-6 sm:p-8 max-w-md w-full text-center shadow-sm">
+          <h1 className="text-base sm:text-lg font-black text-neutral-950">
             Tidak ada item untuk di-checkout
           </h1>
           <p className="text-xs text-neutral-700 mt-1 mb-5">
@@ -755,58 +764,60 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 py-10 px-4 text-neutral-950">
+    <div className="min-h-screen bg-neutral-50 py-5 sm:py-7 px-3.5 sm:px-4 text-neutral-950 overflow-x-hidden">
       <div className="max-w-5xl mx-auto">
-        <Link
-          href="/cart"
-          className="inline-flex items-center gap-1.5 text-xs font-black text-neutral-900 hover:text-black mb-6"
-        >
-          <ArrowLeft className="w-4 h-4" /> Kembali ke Keranjang
-        </Link>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <Link
+            href="/cart"
+            className="inline-flex items-center gap-1.5 text-xs font-black text-neutral-900 hover:text-black"
+          >
+            <ArrowLeft className="w-4 h-4" /> Kembali ke Keranjang
+          </Link>
+        </div>
 
-        <h1 className="text-2xl font-black text-neutral-950 mb-2">
-          Checkout & Konfirmasi Pembayaran
-        </h1>
-        <p className="text-xs font-medium text-neutral-800 mb-8">
-          Pastikan Informasi Profil sudah lengkap, baca & setujui seluruh rules paket, lalu unggah bukti transfer.
-        </p>
+        <div className="mb-4">
+          <h1 className="text-xl sm:text-2xl font-black text-neutral-950">
+            Checkout & Konfirmasi Pembayaran
+          </h1>
+          <p className="text-xs font-medium text-neutral-700 mt-0.5">
+            Lengkapi profil, setujui rules paket, lalu unggah bukti transfer.
+          </p>
+        </div>
 
         <div
-          className={`rounded-3xl border p-5 mb-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+          className={`rounded-2xl border px-4 py-3 mb-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 ${
             isProfileComplete
-              ? "bg-emerald-50/70 border-emerald-300"
+              ? "bg-emerald-50/80 border-emerald-300"
               : "bg-rose-50 border-rose-300"
           }`}
         >
-          <div className="flex items-start gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
             <div
-              className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
+              className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
                 isProfileComplete
                   ? "bg-emerald-200 text-emerald-950"
                   : "bg-rose-200 text-rose-950"
               }`}
             >
               {isProfileComplete ? (
-                <UserCircle className="w-5 h-5" />
+                <UserCircle className="w-4 h-4" />
               ) : (
-                <AlertCircle className="w-5 h-5" />
+                <AlertCircle className="w-4 h-4" />
               )}
             </div>
-            <div className="space-y-1">
-              <p className="text-xs font-black text-neutral-950 uppercase tracking-wider">
+            <div className="min-w-0">
+              <p className="text-[11px] font-black text-neutral-950 uppercase tracking-wider">
                 {isProfileComplete
                   ? "Informasi Profil Lengkap"
-                  : "Informasi Profil Belum Lengkap — Wajib Dilengkapi"}
+                  : `Profil Belum Lengkap (${missingProfileFields.join(", ")})`}
               </p>
               {isProfileComplete ? (
-                <p className="text-xs font-semibold text-neutral-800">
-                  Nama: <strong>{customerProfile?.name}</strong> • No. WA/HP:{" "}
-                  <strong>{customerProfile?.phone}</strong>
+                <p className="text-xs font-semibold text-neutral-800 truncate">
+                  {customerProfile?.name} • {customerProfile?.phone}
                 </p>
               ) : (
-                <p className="text-xs font-bold text-rose-950">
-                  Lengkapi <strong>{missingProfileFields.join(" dan ")}</strong>{" "}
-                  terlebih dahulu karena nomor telepon dibutuhkan admin saat mengecek pesanan. Anda belum bisa checkout sebelum profil terisi lengkap.
+                <p className="text-[11px] font-bold text-rose-950">
+                  Wajib dilengkapi agar admin dapat menghubungi saat cek pesanan.
                 </p>
               )}
             </div>
@@ -814,29 +825,30 @@ export default function CheckoutPage() {
 
           <Link
             href="/profile?tab=profile"
-            className={`inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-black shrink-0 transition ${
+            className={`w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-black shrink-0 transition ${
               isProfileComplete
                 ? "bg-white hover:bg-neutral-100 text-neutral-950 border border-neutral-300"
-                : "bg-rose-600 hover:bg-rose-700 text-white shadow"
+                : "bg-rose-600 hover:bg-rose-700 text-white shadow-xs"
             }`}
           >
-            <UserCircle className="w-4 h-4" />
+            <UserCircle className="w-3.5 h-3.5" />
             <span>
-              {isProfileComplete ? "Edit Profil" : "Lengkapi Informasi Profil"}
+              {isProfileComplete ? "Edit Profil" : "Lengkapi Profil"}
             </span>
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
           <form
             onSubmit={handleCheckoutSubmit}
-            className="lg:col-span-2 bg-white rounded-3xl border border-neutral-300 p-6 shadow-sm space-y-5"
+            className="lg:col-span-2 bg-white rounded-2xl border border-neutral-300 p-4 sm:p-5 shadow-xs space-y-3.5"
           >
-            <div className="bg-amber-50/70 border border-amber-300 rounded-2xl p-4 space-y-4">
+            {/* Rules Ringkas */}
+            <div className="bg-amber-50/70 border border-amber-300 rounded-xl p-3 space-y-2.5">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2 text-xs font-black text-neutral-950 uppercase tracking-wider">
-                  <ScrollText className="w-4 h-4 text-[#6F4E37]" />
-                  <span>Persetujuan Rules & Ketentuan Pelaksanaan (Wajib)</span>
+                <div className="flex items-center gap-1.5 text-xs font-black text-neutral-950">
+                  <ScrollText className="w-4 h-4 text-[#6F4E37] shrink-0" />
+                  <span>Persetujuan Rules (Wajib)</span>
                 </div>
                 <label className="inline-flex items-center gap-1.5 text-xs font-black text-neutral-950 cursor-pointer">
                   <input
@@ -849,43 +861,55 @@ export default function CheckoutPage() {
                 </label>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {items.map((item) => {
                   const rulesList = getRulesForProduct(item.product);
                   const isChecked = Boolean(agreedProductIds[item.id]);
+                  const isExpanded = Boolean(expandedRulesIds[item.id]);
 
                   return (
                     <div
                       key={item.id}
-                      className="bg-white rounded-xl border border-amber-300 p-3.5 space-y-2"
+                      className="bg-white rounded-lg border border-amber-300/90 p-2.5 space-y-1.5"
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <p className="text-xs font-black text-neutral-950">
+                        <p className="text-xs font-black text-neutral-950 truncate">
                           {item.product.title}{" "}
-                          <span className="text-[10px] font-black text-neutral-900 bg-amber-100 px-2 py-0.5 rounded-full uppercase">
+                          <span className="text-[10px] font-black text-neutral-900 bg-amber-100 px-1.5 py-0.5 rounded-full uppercase">
                             {item.product.category}
                           </span>
                         </p>
-                        <span className="text-[11px] font-bold text-neutral-800">
-                          {rulesList.length} Ketentuan
-                        </span>
+                        <button
+                          type="button"
+                          onClick={() => toggleExpandRules(item.id)}
+                          className="inline-flex items-center gap-1 text-[11px] font-bold text-[#6F4E37] hover:underline shrink-0 cursor-pointer"
+                        >
+                          <span>{rulesList.length} Aturan</span>
+                          {isExpanded ? (
+                            <ChevronUp className="w-3.5 h-3.5" />
+                          ) : (
+                            <ChevronDown className="w-3.5 h-3.5" />
+                          )}
+                        </button>
                       </div>
 
-                      <ul className="space-y-1.5 pl-1 max-h-40 overflow-y-auto pr-1">
-                        {rulesList.map((ruleText, rIdx) => (
-                          <li
-                            key={rIdx}
-                            className="text-xs text-neutral-900 flex items-start gap-2 leading-relaxed"
-                          >
-                            <span className="font-black text-neutral-950 shrink-0">
-                              {rIdx + 1}.
-                            </span>
-                            <span>{ruleText}</span>
-                          </li>
-                        ))}
-                      </ul>
+                      {isExpanded && (
+                        <ul className="space-y-1 pl-1 max-h-28 overflow-y-auto pr-1 pt-1 border-t border-neutral-100">
+                          {rulesList.map((ruleText, rIdx) => (
+                            <li
+                              key={rIdx}
+                              className="text-[11px] text-neutral-900 flex items-start gap-1.5 leading-snug"
+                            >
+                              <span className="font-black text-neutral-950 shrink-0">
+                                {rIdx + 1}.
+                              </span>
+                              <span>{ruleText}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
 
-                      <label className="flex items-start gap-2 pt-2 border-t border-neutral-200 cursor-pointer">
+                      <label className="flex items-start gap-2 pt-1 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={isChecked}
@@ -895,11 +919,11 @@ export default function CheckoutPage() {
                               [item.id]: e.target.checked,
                             }))
                           }
-                          className="mt-0.5 w-4 h-4 rounded border-neutral-500 text-neutral-950 focus:ring-neutral-950 cursor-pointer"
+                          className="mt-0.5 w-4 h-4 rounded border-neutral-500 text-neutral-950 focus:ring-neutral-950 cursor-pointer shrink-0"
                         />
-                        <span className="text-xs font-bold text-neutral-950 leading-snug">
-                          Saya telah membaca dan menyetujui seluruh rules{" "}
-                          <strong>{item.product.title}</strong> sebagai bukti komitmen pelaksanaan.
+                        <span className="text-[11px] font-bold text-neutral-950 leading-snug">
+                          Saya menyetujui rules{" "}
+                          <strong>{item.product.title}</strong>.
                         </span>
                       </label>
                     </div>
@@ -908,28 +932,29 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <div className="bg-neutral-50 border border-neutral-300 rounded-2xl p-4 space-y-1.5">
-              <div className="flex items-center gap-2 text-xs font-black text-neutral-950 uppercase tracking-wider">
-                <CreditCard className="w-4 h-4 text-[#6F4E37]" />
-                <span>Rekening Tujuan Transfer</span>
+            {/* Rekening Tujuan */}
+            <div className="bg-neutral-50 border border-neutral-300 rounded-xl px-3.5 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <div className="flex items-center gap-1.5 text-xs font-black text-neutral-950">
+                <CreditCard className="w-4 h-4 text-[#6F4E37] shrink-0" />
+                <span>
+                  {setting.bankName} — {setting.accountNumber}
+                </span>
               </div>
-              <p className="text-sm font-black text-neutral-950">
-                {setting.bankName} — {setting.accountNumber}
-              </p>
-              <p className="text-xs font-semibold text-neutral-900">
-                Atas Nama: <strong>{setting.accountHolder}</strong>
+              <p className="text-[11px] font-semibold text-neutral-800">
+                a.n. <strong>{setting.accountHolder}</strong>
               </p>
             </div>
 
             {errorMsg && (
-              <div className="bg-red-50 border border-red-300 text-red-950 text-xs font-bold px-4 py-3 rounded-xl">
+              <div className="bg-red-50 border border-red-300 text-red-950 text-xs font-bold px-3.5 py-2.5 rounded-xl">
                 {errorMsg}
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Nama & Bank Pengirim */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-black text-neutral-950 mb-1.5">
+                <label className="block text-xs font-black text-neutral-950 mb-1">
                   Nama Pengirim di Rekening *
                 </label>
                 <input
@@ -938,12 +963,12 @@ export default function CheckoutPage() {
                   value={senderName}
                   onChange={(e) => setSenderName(e.target.value)}
                   placeholder="Contoh: Budi Santoso"
-                  className="w-full bg-white border border-neutral-400 rounded-xl px-3.5 py-2.5 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 placeholder:font-medium focus:outline-none focus:ring-2 focus:ring-neutral-950"
+                  className="w-full bg-white border border-neutral-400 rounded-xl px-3 py-2 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 placeholder:font-medium focus:outline-none focus:ring-2 focus:ring-neutral-950"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-black text-neutral-950 mb-1.5">
+                <label className="block text-xs font-black text-neutral-950 mb-1">
                   Bank / E-Wallet Pengirim *
                 </label>
                 <input
@@ -952,24 +977,22 @@ export default function CheckoutPage() {
                   value={bankName}
                   onChange={(e) => setBankName(e.target.value)}
                   placeholder="Contoh: BCA / Mandiri / BRI / GoPay"
-                  className="w-full bg-white border border-neutral-400 rounded-xl px-3.5 py-2.5 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 placeholder:font-medium focus:outline-none focus:ring-2 focus:ring-neutral-950"
+                  className="w-full bg-white border border-neutral-400 rounded-xl px-3 py-2 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 placeholder:font-medium focus:outline-none focus:ring-2 focus:ring-neutral-950"
                 />
               </div>
             </div>
 
+            {/* Upload Bukti Transfer */}
             <div>
-              <label className="block text-xs font-black text-neutral-950 mb-1.5">
-                Upload Bukti Transfer (JPG, PNG, WEBP) *
+              <label className="block text-xs font-black text-neutral-950 mb-1">
+                Upload Bukti Transfer (JPG, PNG, WEBP, max 4MB) *
               </label>
-              <label className="flex flex-col items-center justify-center border-2 border-dashed border-neutral-400 hover:border-neutral-950 rounded-2xl p-6 cursor-pointer transition bg-neutral-50">
-                <Upload className="w-7 h-7 text-neutral-950 mb-2" />
-                <span className="text-xs font-black text-neutral-950">
+              <label className="flex items-center justify-center gap-2.5 border-2 border-dashed border-neutral-400 hover:border-neutral-950 rounded-xl px-4 py-3.5 cursor-pointer transition bg-neutral-50 text-center">
+                <Upload className="w-5 h-5 text-neutral-950 shrink-0" />
+                <span className="text-xs font-black text-neutral-950 truncate">
                   {fileName
-                    ? `File dipilih: ${fileName}`
+                    ? `File: ${fileName}`
                     : "Klik untuk pilih gambar bukti transfer"}
-                </span>
-                <span className="text-[11px] font-semibold text-neutral-700 mt-1">
-                  Maksimal 4MB
                 </span>
                 <input
                   type="file"
@@ -980,45 +1003,46 @@ export default function CheckoutPage() {
               </label>
 
               {paymentProof && (
-                <div className="mt-3">
-                  <p className="text-xs font-bold text-neutral-900 mb-1.5">
-                    Preview Bukti Transfer:
-                  </p>
+                <div className="mt-2 flex items-center gap-3">
                   <img
                     src={paymentProof}
                     alt="Preview Bukti Transfer"
-                    className="max-h-56 rounded-2xl border border-neutral-300 object-contain bg-neutral-100 p-2"
+                    className="h-24 rounded-xl border border-neutral-300 object-contain bg-neutral-100 p-1"
                   />
+                  <span className="text-[11px] font-bold text-emerald-800">
+                    Bukti transfer siap dikirim
+                  </span>
                 </div>
               )}
             </div>
 
+            {/* Catatan */}
             <div>
-              <label className="block text-xs font-black text-neutral-950 mb-1.5">
+              <label className="block text-xs font-black text-neutral-950 mb-1">
                 Catatan Tambahan (Opsional)
               </label>
-              <textarea
-                rows={2}
+              <input
+                type="text"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Contoh: Mohon konfirmasi secepatnya, terima kasih."
-                className="w-full bg-white border border-neutral-400 rounded-xl px-3.5 py-2.5 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 placeholder:font-medium focus:outline-none focus:ring-2 focus:ring-neutral-950"
+                className="w-full bg-white border border-neutral-400 rounded-xl px-3 py-2 text-xs font-bold text-neutral-950 placeholder:text-neutral-600 placeholder:font-medium focus:outline-none focus:ring-2 focus:ring-neutral-950"
               />
             </div>
 
             <button
               type="submit"
               disabled={!canSubmitCheckout}
-              className="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-300 text-black font-black py-3.5 rounded-full text-xs transition shadow-md cursor-pointer disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-300 text-black font-black py-3 px-4 rounded-full text-xs transition shadow-md cursor-pointer disabled:cursor-not-allowed"
             >
               {submitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin text-black" />
+                  <Loader2 className="w-4 h-4 animate-spin text-black shrink-0" />
                   <span>Mengirim Bukti & Membuat Pesanan...</span>
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="w-4 h-4 text-black" />
+                  <CheckCircle2 className="w-4 h-4 text-black shrink-0" />
                   <span>
                     {!isProfileComplete
                       ? "Lengkapi Informasi Profil Dulu"
@@ -1031,12 +1055,13 @@ export default function CheckoutPage() {
             </button>
           </form>
 
-          <div className="bg-white rounded-3xl border border-neutral-300 p-6 h-fit shadow-sm space-y-4">
-            <h2 className="text-base font-black text-neutral-950">
+          {/* Ringkasan Item & Diskon */}
+          <div className="bg-white rounded-2xl border border-neutral-300 p-4 sm:p-5 h-fit shadow-xs space-y-3.5">
+            <h2 className="text-sm sm:text-base font-black text-neutral-950">
               Ringkasan Item
             </h2>
 
-            <div className="space-y-3 border-b border-neutral-200 pb-4">
+            <div className="space-y-2.5 border-b border-neutral-200 pb-3 max-h-56 overflow-y-auto pr-1">
               {items.map((item) => {
                 const key = item.product.slug || item.product.id;
                 const isOutbound = item.product.category === "OUTBOUND";
@@ -1063,16 +1088,16 @@ export default function CheckoutPage() {
                     className="flex justify-between items-start gap-2 text-xs"
                   >
                     <div className="min-w-0">
-                      <p className="font-black text-neutral-950">
+                      <p className="font-black text-neutral-950 truncate">
                         {item.product.title}
                       </p>
-                      <p className="text-neutral-800 font-semibold text-[11px] mt-0.5">
+                      <p className="text-neutral-800 font-semibold text-[11px]">
                         {unitDesc}
                       </p>
                       {sched && (
                         <p className="inline-flex items-start gap-1 text-[11px] font-bold text-neutral-950 mt-0.5">
                           <Calendar className="w-3 h-3 text-[#6F4E37] shrink-0 mt-0.5" />
-                          <span>{sched}</span>
+                          <span className="line-clamp-2">{sched}</span>
                         </p>
                       )}
                     </div>
@@ -1084,14 +1109,14 @@ export default function CheckoutPage() {
               })}
             </div>
 
-            <div className="space-y-2 border-b border-neutral-200 pb-4">
+            <div className="space-y-1.5 border-b border-neutral-200 pb-3">
               <label className="flex items-center gap-1.5 text-xs font-black text-neutral-950">
                 <Tag className="w-3.5 h-3.5 text-[#6F4E37]" />
                 <span>Kode Diskon</span>
               </label>
 
               {appliedDiscount ? (
-                <div className="flex items-center justify-between gap-2 bg-emerald-50 border border-emerald-300 rounded-xl px-3 py-2">
+                <div className="flex items-center justify-between gap-2 bg-emerald-50 border border-emerald-300 rounded-xl px-3 py-1.5">
                   <p className="text-xs font-black text-emerald-950">
                     {appliedDiscount.code}{" "}
                     <span className="text-[11px] font-bold">
@@ -1106,7 +1131,7 @@ export default function CheckoutPage() {
                     type="button"
                     onClick={handleRemoveDiscount}
                     title="Hapus kode diskon"
-                    className="p-1.5 rounded-lg bg-white hover:bg-rose-50 text-rose-700 border border-emerald-200 cursor-pointer"
+                    className="p-1 rounded-lg bg-white hover:bg-rose-50 text-rose-700 border border-emerald-200 cursor-pointer shrink-0"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -1119,14 +1144,14 @@ export default function CheckoutPage() {
                     onChange={(e) =>
                       setDiscountInput(e.target.value.toUpperCase())
                     }
-                    placeholder="Contoh: HEMAT5 / ALAM25K"
-                    className="flex-1 bg-white border border-neutral-400 rounded-xl px-3 py-2 text-xs font-bold text-neutral-950 uppercase placeholder:normal-case placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-950"
+                    placeholder="Kode diskon"
+                    className="min-w-0 flex-1 bg-white border border-neutral-400 rounded-xl px-3 py-1.5 text-xs font-bold text-neutral-950 uppercase placeholder:normal-case placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-950"
                   />
                   <button
                     type="button"
                     disabled={applyingDiscount}
                     onClick={handleApplyDiscount}
-                    className="px-3.5 py-2 rounded-xl text-xs font-black bg-[#6F4E37] hover:bg-[#5a3e2b] text-white shrink-0 cursor-pointer disabled:opacity-60"
+                    className="px-3 py-1.5 rounded-xl text-xs font-black bg-[#6F4E37] hover:bg-[#5a3e2b] text-white shrink-0 cursor-pointer disabled:opacity-60"
                   >
                     {applyingDiscount ? "..." : "Pakai"}
                   </button>
@@ -1146,7 +1171,7 @@ export default function CheckoutPage() {
               )}
             </div>
 
-            <div className="space-y-1.5 text-xs">
+            <div className="space-y-1 text-xs">
               <div className="flex justify-between items-center text-neutral-800 font-semibold">
                 <span>Subtotal</span>
                 <span>{formatRupiah(subtotalAmount)}</span>
@@ -1165,20 +1190,20 @@ export default function CheckoutPage() {
                 </div>
               )}
 
-              <div className="flex justify-between items-center pt-2 border-t border-neutral-200">
+              <div className="flex justify-between items-center pt-1.5 border-t border-neutral-200">
                 <span className="text-xs font-black text-neutral-950">
                   Total Bayar
                 </span>
-                <span className="text-lg font-black text-[#6F4E37]">
+                <span className="text-base sm:text-lg font-black text-[#6F4E37]">
                   {formatRupiah(totalAmount)}
                 </span>
               </div>
             </div>
 
-            <div className="flex items-start gap-2 bg-neutral-100 p-3 rounded-2xl text-xs font-medium text-neutral-900">
+            <div className="flex items-start gap-2 bg-neutral-100 px-3 py-2.5 rounded-xl text-[11px] font-medium text-neutral-900">
               <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
               <span>
-                Tanggal sewa yang dipilih akan otomatis terbooking saat checkout diproses, lalu masuk ke status{" "}
+                Jadwal otomatis terbooking saat checkout lalu masuk ke{" "}
                 <strong>Menunggu Konfirmasi</strong>.
               </span>
             </div>

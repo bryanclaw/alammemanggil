@@ -7,28 +7,34 @@ export default function Footer() {
     <div className="bg-[#F6F4F1] pt-10 sm:pt-12 overflow-x-hidden">
       <footer className="bg-[#F6F4F1]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 pb-8 sm:pb-10">
-          {/* Grid Konten Utama */}
-          <div className="grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-4 items-start">
-            {/* Contact */}
+          {/* Grid Konten Utama: 2x2 di HP, 4 kolom di Desktop */}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:gap-8 lg:grid-cols-4 items-start">
+            {/* Baris 1 Kiri: Contact */}
             <div className="flex flex-col justify-center min-w-0">
-              <h3 className="mb-2.5 sm:mb-3 text-base sm:text-lg font-bold text-[#5C4033] tracking-wide">
+              <h3 className="mb-2 sm:mb-3 text-sm sm:text-lg font-bold text-[#5C4033] tracking-wide">
                 Contact Us
               </h3>
-              <p className="mb-3 text-xs sm:text-sm text-gray-600 leading-snug">
+              <p className="mb-2.5 text-[11px] sm:text-sm text-gray-600 leading-snug">
                 We&apos;d love to hear from you.
               </p>
-              <div className="space-y-2.5 text-xs sm:text-sm text-gray-700">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <Mail size={16} className="shrink-0 text-[#5C4033]" />
+              <div className="space-y-2 text-[11px] sm:text-sm text-gray-700">
+                <div className="flex items-start sm:items-center gap-2 min-w-0">
+                  <Mail
+                    size={15}
+                    className="mt-0.5 sm:mt-0 shrink-0 text-[#5C4033]"
+                  />
                   <Link
                     href="mailto:alammemanggil@gmail.com"
-                    className="transition hover:text-[#7B5538] leading-snug break-all sm:break-normal"
+                    className="transition hover:text-[#7B5538] leading-snug break-all"
                   >
                     alammemanggil@gmail.com
                   </Link>
                 </div>
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <FaWhatsapp size={16} className="text-green-600 shrink-0" />
+                <div className="flex items-center gap-2 min-w-0">
+                  <FaWhatsapp
+                    size={15}
+                    className="text-green-600 shrink-0"
+                  />
                   <Link
                     href="https://wa.me/6281292548524"
                     target="_blank"
@@ -41,13 +47,16 @@ export default function Footer() {
               </div>
             </div>
 
-            {/* Location */}
+            {/* Baris 1 Kanan: Location */}
             <div className="flex flex-col justify-center min-w-0">
-              <h3 className="mb-2.5 sm:mb-3 text-base sm:text-lg font-bold text-[#5C4033] tracking-wide">
+              <h3 className="mb-2 sm:mb-3 text-sm sm:text-lg font-bold text-[#5C4033] tracking-wide">
                 Location
               </h3>
-              <div className="flex items-start gap-2.5 text-xs sm:text-sm text-gray-700 leading-snug">
-                <MapPin size={16} className="mt-0.5 shrink-0 text-[#5C4033]" />
+              <div className="flex items-start gap-2 text-[11px] sm:text-sm text-gray-700 leading-snug">
+                <MapPin
+                  size={15}
+                  className="mt-0.5 shrink-0 text-[#5C4033]"
+                />
                 <span>
                   Jakarta Barat
                   <br />
@@ -56,23 +65,26 @@ export default function Footer() {
               </div>
             </div>
 
-            {/* Operating Hours */}
+            {/* Baris 2 Kiri: Operating Hours */}
             <div className="flex flex-col justify-center min-w-0">
-              <h3 className="mb-2.5 sm:mb-3 text-base sm:text-lg font-bold text-[#5C4033] tracking-wide">
+              <h3 className="mb-2 sm:mb-3 text-sm sm:text-lg font-bold text-[#5C4033] tracking-wide">
                 Operating Hours
               </h3>
-              <div className="flex items-start gap-2.5 text-xs sm:text-sm text-gray-700 leading-snug">
-                <Clock3 size={16} className="mt-0.5 shrink-0 text-[#5C4033]" />
-                <div>
+              <div className="flex items-start gap-2 text-[11px] sm:text-sm text-gray-700 leading-snug">
+                <Clock3
+                  size={15}
+                  className="mt-0.5 shrink-0 text-[#5C4033]"
+                />
+                <div className="min-w-0">
                   <p>Monday – Friday</p>
                   <p className="text-gray-600">09:00 – 17:00 WIB (UTC+7)</p>
                 </div>
               </div>
             </div>
 
-            {/* Social */}
+            {/* Baris 2 Kanan: Social */}
             <div className="flex flex-col justify-center min-w-0">
-              <h3 className="mb-2.5 sm:mb-3 text-base sm:text-lg font-bold text-[#5C4033] tracking-wide">
+              <h3 className="mb-2 sm:mb-3 text-sm sm:text-lg font-bold text-[#5C4033] tracking-wide">
                 Follow Us
               </h3>
               <div className="flex items-center gap-4 text-[#5C4033] h-8">
@@ -83,7 +95,7 @@ export default function Footer() {
                   aria-label="Instagram"
                   className="transition duration-300 hover:scale-110 hover:text-pink-600 flex items-center"
                 >
-                  <FaInstagram size={22} className="sm:w-6 sm:h-6" />
+                  <FaInstagram size={20} className="sm:w-6 sm:h-6" />
                 </Link>
                 <Link
                   href="https://www.tiktok.com/@alammemanggil"
@@ -92,7 +104,7 @@ export default function Footer() {
                   aria-label="TikTok"
                   className="transition duration-300 hover:scale-110 hover:text-black flex items-center"
                 >
-                  <FaTiktok size={20} className="sm:w-[22px] sm:h-[22px]" />
+                  <FaTiktok size={18} className="sm:w-[22px] sm:h-[22px]" />
                 </Link>
               </div>
             </div>

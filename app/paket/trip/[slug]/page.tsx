@@ -241,7 +241,7 @@ export default function DynamicOpenTripDetail() {
   return (
     <div className="min-h-screen overflow-x-hidden bg-white text-neutral-900 font-sans antialiased text-xs md:text-sm selection:bg-[#8C6239]/20 selection:text-[#8C6239]">
       {/* TAB BAR */}
-      <div className="sticky top-0 z-10 w-full bg-white/80 backdrop-blur-md py-3 sm:py-4 px-3 sm:px-4 flex justify-start border-b border-neutral-200/50">
+      <div className="sticky top-0 z-10 w-full bg-white/80 backdrop-blur-md py-2.5 sm:py-4 px-3 sm:px-4 flex justify-start border-b border-neutral-200/50">
         <div className="inline-flex max-w-full overflow-x-auto no-scrollbar relative rounded-full bg-neutral-200/80 p-1 shrink-0">
           {tabs.map((tab) => {
             const isSelected = activeTab === tab;
@@ -249,7 +249,7 @@ export default function DynamicOpenTripDetail() {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`relative px-3.5 sm:px-6 py-2 sm:py-2.5 text-[10px] md:text-xs font-black tracking-wider sm:tracking-widest rounded-full transition-all duration-300 cursor-pointer uppercase whitespace-nowrap shrink-0 ${
+                className={`relative px-3 sm:px-6 py-1.5 sm:py-2.5 text-[10px] md:text-xs font-black tracking-wider sm:tracking-widest rounded-full transition-all duration-300 cursor-pointer uppercase whitespace-nowrap shrink-0 ${
                   isSelected
                     ? "bg-[#6F4E37] text-white shadow"
                     : "text-neutral-600 hover:text-neutral-900"
@@ -263,9 +263,9 @@ export default function DynamicOpenTripDetail() {
       </div>
 
       {/* MAIN CONTAINER */}
-      <main className="mx-auto max-w-[1140px] px-3.5 sm:px-4 py-6 sm:py-8 space-y-8 sm:space-y-12">
+      <main className="mx-auto max-w-[1140px] px-3 sm:px-4 py-4 sm:py-8 space-y-6 sm:space-y-12">
         <div
-          className={`grid gap-6 sm:gap-8 ${
+          className={`grid gap-4 sm:gap-8 ${
             activeTab === "INFORMATION" ? "lg:grid-cols-3" : "grid-cols-1"
           }`}
         >
@@ -273,15 +273,15 @@ export default function DynamicOpenTripDetail() {
           <div
             className={`${
               activeTab === "INFORMATION" ? "lg:col-span-2" : "col-span-1"
-            } space-y-5 sm:space-y-6 min-w-0`}
+            } space-y-3.5 sm:space-y-6 min-w-0`}
           >
             {activeTab === "INFORMATION" && (
-              <div className="space-y-5 sm:space-y-6">
-                <div className="bg-neutral-200/80 rounded-[24px] sm:rounded-[28px] p-5 sm:p-8">
-                  <h1 className="text-xl sm:text-2xl md:text-4xl font-black tracking-tight text-neutral-900 break-words">
+              <div className="space-y-3.5 sm:space-y-6">
+                <div className="bg-neutral-200/80 rounded-[20px] sm:rounded-[28px] p-4 sm:p-8">
+                  <h1 className="text-lg sm:text-2xl md:text-4xl font-black tracking-tight text-neutral-900 break-words leading-tight">
                     {product.title}
                   </h1>
-                  <p className="mt-2 text-neutral-700 font-bold text-xs flex flex-wrap items-center gap-2">
+                  <p className="mt-1.5 sm:mt-2 text-neutral-700 font-bold text-[11px] sm:text-xs flex flex-wrap items-center gap-1.5 sm:gap-2">
                     <span>📍 {meta.location || "Indonesia"}</span>
                     {meta.elevation && (
                       <>
@@ -292,81 +292,87 @@ export default function DynamicOpenTripDetail() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                  <div className="bg-neutral-200/80 rounded-[20px] p-4">
-                    <p className="font-bold text-neutral-500 text-[10px] uppercase tracking-wider">
-                      Jalur Pendakian
+                {/* 3 CARD BERJEJER DALAM 1 BARIS */}
+                <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                  <div className="bg-neutral-200/80 rounded-[16px] sm:rounded-[20px] p-2.5 sm:p-4 min-w-0">
+                    <p className="font-bold text-neutral-500 text-[8px] sm:text-[10px] uppercase tracking-wider truncate">
+                      Jalur
                     </p>
-                    <p className="font-black text-neutral-900 text-xs sm:text-sm mt-1">
+                    <p className="font-black text-neutral-900 text-[11px] sm:text-sm mt-0.5 sm:mt-1 truncate">
                       🗺️ {meta.route || "-"}
                     </p>
                   </div>
 
-                  <div className="bg-neutral-200/80 rounded-[20px] p-4">
-                    <p className="font-bold text-neutral-500 text-[10px] uppercase tracking-wider">
+                  <div className="bg-neutral-200/80 rounded-[16px] sm:rounded-[20px] p-2.5 sm:p-4 min-w-0">
+                    <p className="font-bold text-neutral-500 text-[8px] sm:text-[10px] uppercase tracking-wider truncate">
                       Durasi
                     </p>
-                    <p className="font-black text-neutral-900 text-xs sm:text-sm mt-1">
+                    <p className="font-black text-neutral-900 text-[11px] sm:text-sm mt-0.5 sm:mt-1 truncate">
                       ⏱️ {meta.duration || "-"}
                     </p>
                   </div>
 
-                  <div className="bg-neutral-200/80 rounded-[20px] p-4">
-                    <p className="font-bold text-neutral-500 text-[10px] uppercase tracking-wider">
-                      Grade Gunung
+                  <div className="bg-neutral-200/80 rounded-[16px] sm:rounded-[20px] p-2.5 sm:p-4 min-w-0">
+                    <p className="font-bold text-neutral-500 text-[8px] sm:text-[10px] uppercase tracking-wider truncate">
+                      Grade
                     </p>
-                    <p className="font-black text-[#6F4E37] text-xs sm:text-sm mt-1">
-                      ⛰️ Grade {meta.grade || "2"} / 5
+                    <p className="font-black text-[#6F4E37] text-[11px] sm:text-sm mt-0.5 sm:mt-1 truncate">
+                      ⛰️ {meta.grade || "2"}/5
                     </p>
                   </div>
                 </div>
 
-                <div className="bg-neutral-200/80 rounded-[22px] sm:rounded-[24px] p-5 sm:p-6">
-                  <h3 className="text-[11px] font-black text-neutral-600 uppercase tracking-widest mb-3">
+                <div className="bg-neutral-200/80 rounded-[18px] sm:rounded-[24px] p-3.5 sm:p-6">
+                  <h3 className="text-[10px] sm:text-[11px] font-black text-neutral-600 uppercase tracking-widest mb-1.5 sm:mb-3">
                     Destinasi
                   </h3>
-                  <p className="text-neutral-900 leading-relaxed font-medium text-xs md:text-sm whitespace-pre-line break-words">
+                  <p className="text-neutral-900 leading-relaxed font-medium text-[11px] sm:text-xs md:text-sm whitespace-pre-line break-words">
                     {product.description}
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-                  <div className="bg-neutral-200/80 rounded-[22px] sm:rounded-[24px] p-5 sm:p-6">
-                    <h4 className="text-[11px] font-black text-[#6F4E37] uppercase tracking-widest mb-4 flex items-center gap-1.5">
+                {/* MEETING POINT & POS ALUR BERJEJER 2 KOLOM */}
+                <div className="grid grid-cols-2 gap-2.5 sm:gap-5">
+                  <div className="bg-neutral-200/80 rounded-[18px] sm:rounded-[24px] p-3.5 sm:p-6 min-w-0">
+                    <h4 className="text-[9px] sm:text-[11px] font-black text-[#6F4E37] uppercase tracking-wider sm:tracking-widest mb-2 sm:mb-4 flex items-center gap-1">
                       <span>📍</span>
-                      <span>Titik Kumpul (Meeting Point)</span>
+                      <span className="truncate">Meeting Point</span>
                     </h4>
                     {meetingPoints.length === 0 ? (
-                      <p className="text-xs text-neutral-500 font-medium">
+                      <p className="text-[10px] sm:text-xs text-neutral-500 font-medium">
                         Belum ditambahkan oleh Admin.
                       </p>
                     ) : (
-                      <ul className="space-y-2.5 text-xs font-bold text-neutral-900">
+                      <ul className="space-y-1.5 sm:space-y-2.5 text-[11px] sm:text-xs font-bold text-neutral-900">
                         {meetingPoints.map((mp, i) => (
-                          <li key={i} className="flex items-start gap-2">
-                            <span className="text-[#6F4E37] font-black">•</span>
-                            <span className="break-words">{mp}</span>
+                          <li key={i} className="flex items-start gap-1.5 sm:gap-2">
+                            <span className="text-[#6F4E37] font-black shrink-0">
+                              •
+                            </span>
+                            <span className="break-words leading-snug">{mp}</span>
                           </li>
                         ))}
                       </ul>
                     )}
                   </div>
 
-                  <div className="bg-neutral-200/80 rounded-[22px] sm:rounded-[24px] p-5 sm:p-6">
-                    <h4 className="text-[11px] font-black text-[#6F4E37] uppercase tracking-widest mb-4 flex items-center gap-1.5">
+                  <div className="bg-neutral-200/80 rounded-[18px] sm:rounded-[24px] p-3.5 sm:p-6 min-w-0">
+                    <h4 className="text-[9px] sm:text-[11px] font-black text-[#6F4E37] uppercase tracking-wider sm:tracking-widest mb-2 sm:mb-4 flex items-center gap-1">
                       <span>🚩</span>
-                      <span>Pos Alur Pendakian</span>
+                      <span className="truncate">Pos Alur</span>
                     </h4>
                     {trailPosts.length === 0 ? (
-                      <p className="text-xs text-neutral-500 font-medium">
+                      <p className="text-[10px] sm:text-xs text-neutral-500 font-medium">
                         Belum ditambahkan oleh Admin.
                       </p>
                     ) : (
-                      <ul className="space-y-2.5 text-xs font-bold text-neutral-900">
+                      <ul className="space-y-1.5 sm:space-y-2.5 text-[11px] sm:text-xs font-bold text-neutral-900">
                         {trailPosts.map((post, i) => (
-                          <li key={i} className="flex items-start gap-2">
-                            <span className="text-rose-600 font-black">▸</span>
-                            <span className="break-words">{post}</span>
+                          <li key={i} className="flex items-start gap-1.5 sm:gap-2">
+                            <span className="text-rose-600 font-black shrink-0">
+                              ▸
+                            </span>
+                            <span className="break-words leading-snug">{post}</span>
                           </li>
                         ))}
                       </ul>
@@ -375,14 +381,14 @@ export default function DynamicOpenTripDetail() {
                 </div>
 
                 {includesList.length > 0 && (
-                  <div className="bg-neutral-200/80 rounded-[22px] sm:rounded-[24px] p-5 sm:p-6">
-                    <h3 className="text-[11px] font-black text-neutral-700 tracking-widest uppercase mb-4 flex items-center gap-1.5">
+                  <div className="bg-neutral-200/80 rounded-[18px] sm:rounded-[24px] p-3.5 sm:p-6">
+                    <h3 className="text-[10px] sm:text-[11px] font-black text-neutral-700 tracking-widest uppercase mb-2.5 sm:mb-4 flex items-center gap-1.5">
                       <span className="text-emerald-700">☑</span>
                       <span>Include</span>
                     </h3>
-                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-xs font-bold text-neutral-900">
+                    <ul className="grid grid-cols-2 gap-x-3 sm:gap-x-8 gap-y-1.5 sm:gap-y-3 text-[11px] sm:text-xs font-bold text-neutral-900">
                       {includesList.map((inc, i) => (
-                        <li key={i} className="flex gap-2.5 items-start">
+                        <li key={i} className="flex gap-1.5 sm:gap-2.5 items-start">
                           <span className="text-[#6F4E37] font-black shrink-0">
                             ✓
                           </span>
@@ -403,24 +409,24 @@ export default function DynamicOpenTripDetail() {
                     Belum ada jadwal itinerary yang ditambahkan oleh Admin.
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-6">
                     {groupedItinerary.map(([dayNum, entries]) => (
                       <div
                         key={dayNum}
-                        className="rounded-[24px] sm:rounded-[28px] bg-neutral-200/80 p-5 sm:p-6 space-y-5"
+                        className="rounded-[18px] sm:rounded-[28px] bg-neutral-200/80 p-3 sm:p-6 space-y-2.5 sm:space-y-5"
                       >
-                        <div className="inline-flex rounded-full bg-[#6F4E37] px-5 py-1.5 text-xs font-black tracking-widest text-white uppercase">
+                        <div className="inline-flex rounded-full bg-[#6F4E37] px-3 sm:px-5 py-1 sm:py-1.5 text-[10px] sm:text-xs font-black tracking-widest text-white uppercase">
                           DAY {dayNum}
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-2.5 sm:space-y-4">
                           {entries.map((row, idx) => (
                             <div key={idx} className="space-y-0.5">
-                              <p className="text-xs font-black text-[#6F4E37]">
+                              <p className="text-[10px] sm:text-xs font-black text-[#6F4E37]">
                                 {row.startTime}
                                 {row.endTime ? ` - ${row.endTime}` : ""}
                               </p>
-                              <p className="text-xs font-bold text-neutral-900 leading-snug break-words">
+                              <p className="text-[11px] sm:text-xs font-bold text-neutral-900 leading-snug break-words">
                                 {row.activity}
                               </p>
                             </div>
@@ -532,13 +538,13 @@ export default function DynamicOpenTripDetail() {
 
           {/* KOLOM KANAN */}
           {activeTab === "INFORMATION" && (
-            <div className="lg:col-span-1 space-y-4 sm:space-y-5 min-w-0">
+            <div className="lg:col-span-1 space-y-3.5 sm:space-y-5 min-w-0">
               {embedSrc && (
-                <div className="border border-neutral-200 bg-white rounded-[22px] sm:rounded-[24px] overflow-hidden shadow-sm">
+                <div className="border border-neutral-200 bg-white rounded-[18px] sm:rounded-[24px] overflow-hidden shadow-sm">
                   <iframe
                     src={embedSrc}
                     title={`Maps ${product.title}`}
-                    className="w-full h-40 sm:h-44 border-0"
+                    className="w-full h-36 sm:h-44 border-0"
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
                     allowFullScreen
@@ -546,9 +552,9 @@ export default function DynamicOpenTripDetail() {
                 </div>
               )}
 
-              <div className="border border-neutral-200 bg-neutral-100/90 rounded-[22px] sm:rounded-[24px] p-4 sm:p-5 shadow-sm">
+              <div className="border border-neutral-200 bg-neutral-100/90 rounded-[18px] sm:rounded-[24px] p-3.5 sm:p-5 shadow-sm">
                 {product.image && (
-                  <div className="w-full h-40 sm:h-44 rounded-xl overflow-hidden mb-4 border border-neutral-200 bg-white">
+                  <div className="w-full h-36 sm:h-44 rounded-xl overflow-hidden mb-3 sm:mb-4 border border-neutral-200 bg-white">
                     <img
                       src={product.image}
                       alt={product.title}
@@ -557,25 +563,25 @@ export default function DynamicOpenTripDetail() {
                   </div>
                 )}
 
-                <div className="mb-3">
-                  <h2 className="text-base sm:text-lg font-black text-neutral-900 tracking-tight break-words">
+                <div className="mb-2.5 sm:mb-3">
+                  <h2 className="text-sm sm:text-lg font-black text-neutral-900 tracking-tight break-words">
                     {product.title}
                   </h2>
-                  <p className="text-neutral-500 text-xs font-bold mt-0.5">
+                  <p className="text-neutral-500 text-[11px] sm:text-xs font-bold mt-0.5">
                     {meta.location || "Indonesia"}
                   </p>
                 </div>
 
-                <div className="w-full bg-[#6F4E37] text-white py-2 rounded-full text-center text-xs font-black tracking-widest uppercase">
+                <div className="w-full bg-[#6F4E37] text-white py-1.5 sm:py-2 rounded-full text-center text-[11px] sm:text-xs font-black tracking-widest uppercase">
                   🗓️ TIME TRIP
                 </div>
 
                 {timeSlots.length === 0 ? (
-                  <p className="mt-3 text-[11px] font-semibold text-neutral-500 text-center">
+                  <p className="mt-2.5 text-[11px] font-semibold text-neutral-500 text-center">
                     Jadwal keberangkatan segera diinfokan.
                   </p>
                 ) : (
-                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="mt-2.5 grid grid-cols-2 gap-1.5 sm:gap-2">
                     {timeSlots.map((slot) => {
                       const isSold =
                         Boolean(slot.sold) || Number(slot.quota) <= 0;
@@ -586,7 +592,7 @@ export default function DynamicOpenTripDetail() {
                           type="button"
                           disabled={isSold}
                           onClick={() => !isSold && setSelectedSlotId(slot.id)}
-                          className={`rounded-xl py-2 px-2.5 text-center border transition ${
+                          className={`rounded-xl py-1.5 sm:py-2 px-2 text-center border transition ${
                             isSold
                               ? "border-red-600 bg-red-600 text-white cursor-not-allowed"
                               : isSelected
@@ -594,11 +600,11 @@ export default function DynamicOpenTripDetail() {
                               : "border-neutral-300 bg-white text-neutral-900 hover:border-[#6F4E37] cursor-pointer"
                           }`}
                         >
-                          <p className="text-[11px] font-black leading-tight">
+                          <p className="text-[10px] sm:text-[11px] font-black leading-tight">
                             {slot.dateLabel}
                           </p>
                           <p
-                            className={`text-[10px] font-bold mt-0.5 ${
+                            className={`text-[9px] sm:text-[10px] font-bold mt-0.5 ${
                               isSold
                                 ? "text-white uppercase tracking-wider"
                                 : isSelected
@@ -618,21 +624,21 @@ export default function DynamicOpenTripDetail() {
                   *Blok merah bertanda SOLD artinya kuota sudah penuh
                 </p>
 
-                <div className="mt-5 border-t border-dashed border-neutral-300 pt-4 flex items-center justify-between gap-2">
-                  <span className="text-xs font-bold text-neutral-600">
+                <div className="mt-4 sm:mt-5 border-t border-dashed border-neutral-300 pt-3 sm:pt-4 flex items-center justify-between gap-2">
+                  <span className="text-[11px] sm:text-xs font-bold text-neutral-600">
                     Harga Trip / Pax
                   </span>
-                  <span className="text-sm sm:text-base font-black text-[#6F4E37]">
+                  <span className="text-xs sm:text-base font-black text-[#6F4E37]">
                     {formattedPrice}
                   </span>
                 </div>
 
-                <div className="mt-5 flex flex-col items-center">
+                <div className="mt-4 sm:mt-5 flex flex-col items-center">
                   {isTripSoldOut ? (
                     <button
                       type="button"
                       disabled
-                      className="w-full py-2.5 px-6 rounded-full font-black text-xs tracking-widest uppercase bg-red-600 text-white cursor-not-allowed"
+                      className="w-full py-2 sm:py-2.5 px-6 rounded-full font-black text-xs tracking-widest uppercase bg-red-600 text-white cursor-not-allowed"
                     >
                       KUOTA PENUH / SOLD
                     </button>
@@ -660,19 +666,19 @@ export default function DynamicOpenTripDetail() {
         {/* GALERI DOKUMENTASI */}
         {activeTab === "INFORMATION" &&
           (slider1Cards.length > 0 || slider2Cards.length > 0) && (
-            <div className="space-y-4 sm:space-y-5 pt-6 sm:pt-8 border-t border-neutral-200/70">
+            <div className="space-y-3 sm:space-y-5 pt-4 sm:pt-8 border-t border-neutral-200/70">
               <div>
-                <h2 className="text-sm md:text-base font-black tracking-wider text-neutral-900 uppercase">
+                <h2 className="text-xs sm:text-base font-black tracking-wider text-neutral-900 uppercase">
                   GALERI DOKUMENTASI
                 </h2>
-                <p className="text-xs text-neutral-500 mt-0.5 font-medium">
+                <p className="text-[11px] sm:text-xs text-neutral-500 mt-0.5 font-medium">
                   Keseruan dan keindahan panorama jalur pendakian {product.title}
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6">
                 {slider1Cards.length > 0 && (
-                  <div className="relative rounded-[24px] sm:rounded-[28px] overflow-hidden h-[240px] sm:h-[320px] md:h-[360px] bg-neutral-900 shadow-md">
+                  <div className="relative rounded-[20px] sm:rounded-[28px] overflow-hidden h-[200px] sm:h-[320px] md:h-[360px] bg-neutral-900 shadow-md">
                     {slider1Cards.map((card, idx) => (
                       <div
                         key={idx}
@@ -688,12 +694,12 @@ export default function DynamicOpenTripDetail() {
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />
-                        <div className="absolute bottom-4 sm:bottom-5 left-4 sm:left-5 right-4 sm:right-5 flex items-end justify-between gap-3">
+                        <div className="absolute bottom-3.5 sm:bottom-5 left-3.5 sm:left-5 right-3.5 sm:right-5 flex items-end justify-between gap-3">
                           <div className="min-w-0">
-                            <span className="inline-block bg-black/65 backdrop-blur-xs text-white text-[9px] font-black tracking-widest uppercase px-2.5 py-1 rounded-full mb-1.5">
+                            <span className="inline-block bg-black/65 backdrop-blur-xs text-white text-[9px] font-black tracking-widest uppercase px-2.5 py-1 rounded-full mb-1">
                               {card.badge}
                             </span>
-                            <p className="text-white font-black text-sm sm:text-base md:text-lg leading-snug break-words">
+                            <p className="text-white font-black text-xs sm:text-base md:text-lg leading-snug break-words">
                               {card.caption}
                             </p>
                           </div>
@@ -718,7 +724,7 @@ export default function DynamicOpenTripDetail() {
                 )}
 
                 {slider2Cards.length > 0 && (
-                  <div className="relative rounded-[24px] sm:rounded-[28px] overflow-hidden h-[240px] sm:h-[320px] md:h-[360px] bg-neutral-900 shadow-md">
+                  <div className="relative rounded-[20px] sm:rounded-[28px] overflow-hidden h-[200px] sm:h-[320px] md:h-[360px] bg-neutral-900 shadow-md">
                     {slider2Cards.map((card, idx) => (
                       <div
                         key={idx}
@@ -734,12 +740,12 @@ export default function DynamicOpenTripDetail() {
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />
-                        <div className="absolute bottom-4 sm:bottom-5 left-4 sm:left-5 right-4 sm:right-5 flex items-end justify-between gap-3">
+                        <div className="absolute bottom-3.5 sm:bottom-5 left-3.5 sm:left-5 right-3.5 sm:right-5 flex items-end justify-between gap-3">
                           <div className="min-w-0">
-                            <span className="inline-block bg-black/65 backdrop-blur-xs text-white text-[9px] font-black tracking-widest uppercase px-2.5 py-1 rounded-full mb-1.5">
+                            <span className="inline-block bg-black/65 backdrop-blur-xs text-white text-[9px] font-black tracking-widest uppercase px-2.5 py-1 rounded-full mb-1">
                               {card.badge}
                             </span>
-                            <p className="text-white font-black text-sm sm:text-base md:text-lg leading-snug break-words">
+                            <p className="text-white font-black text-xs sm:text-base md:text-lg leading-snug break-words">
                               {card.caption}
                             </p>
                           </div>

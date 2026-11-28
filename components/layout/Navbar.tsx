@@ -79,13 +79,13 @@ export default function Navbar() {
 
   return (
     <nav className="bg-[#6F4E37] antialiased select-none relative z-50 shadow-md">
-      <div className="mx-auto max-w-7xl px-3.5 sm:px-6">
+      <div className="mx-auto max-w-7xl px-3 sm:px-6">
         {/* BARIS UTAMA */}
-        <div className="flex h-16 items-center justify-between gap-2">
+        <div className="flex h-14 md:h-16 items-center justify-between gap-2">
           {/* LOGO */}
           <Link
             href="/"
-            className="text-base sm:text-2xl font-black text-white tracking-wider hover:opacity-90 transition truncate shrink-0"
+            className="text-sm sm:text-2xl font-black text-white tracking-wider hover:opacity-90 transition truncate shrink-0"
           >
             ALAM MEMANGGIL
           </Link>
@@ -119,7 +119,7 @@ export default function Navbar() {
           </ul>
 
           {/* AREA AUTH / KERANJANG / PROFILE */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             {status === "loading" ? (
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/20 animate-pulse" />
             ) : session?.user ? (
@@ -130,7 +130,7 @@ export default function Navbar() {
                   title={`Keranjang (${cartCount})`}
                   className="relative flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/20 hover:bg-black/30 text-white border border-white/10 transition shrink-0"
                 >
-                  <ShoppingCart className="w-4 h-4" />
+                  <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   <span
                     className={`absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full text-[10px] font-black flex items-center justify-center shadow ${
                       cartCount > 0
@@ -147,12 +147,12 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    className="flex items-center gap-1.5 sm:gap-2.5 bg-black/20 hover:bg-black/30 text-white px-2.5 sm:px-3 py-1.5 rounded-full border border-white/10 transition text-xs font-semibold cursor-pointer"
+                    className="flex items-center gap-1.5 sm:gap-2.5 bg-black/20 hover:bg-black/30 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-white/10 transition text-xs font-semibold cursor-pointer"
                   >
-                    <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white text-[#6F4E37] flex items-center justify-center font-bold shadow-sm shrink-0">
+                    <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white text-[#6F4E37] flex items-center justify-center font-bold shadow-sm shrink-0 text-[11px] sm:text-xs">
                       {session.user.name?.[0]?.toUpperCase() || "U"}
                     </div>
-                    <span className="max-w-[68px] sm:max-w-[100px] truncate">
+                    <span className="max-w-[56px] sm:max-w-[100px] truncate text-[11px] sm:text-xs">
                       {session.user.name || "Profile"}
                     </span>
                     <ChevronDown
@@ -210,7 +210,7 @@ export default function Navbar() {
               /* KONDISI 2: BELUM LOGIN (Tombol Masuk/Login Kapsul) */
               <Link
                 href="/login"
-                className="flex items-center gap-1.5 sm:gap-2 bg-white hover:bg-neutral-100 text-[#6F4E37] px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs font-black transition-all shadow-md active:scale-95 shrink-0"
+                className="flex items-center gap-1.5 sm:gap-2 bg-white hover:bg-neutral-100 text-[#6F4E37] px-3 sm:px-5 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-black transition-all shadow-md active:scale-95 shrink-0"
               >
                 <User className="w-3.5 h-3.5" />
                 <span>Masuk</span>
@@ -220,8 +220,8 @@ export default function Navbar() {
         </div>
 
         {/* NAVIGASI KHUSUS LAYAR HP (< md) */}
-        <div className="md:hidden pb-2.5 pt-0.5">
-          <ul className="flex items-center justify-between gap-1.5 bg-black/15 p-1 rounded-full border border-white/10">
+        <div className="md:hidden pb-2 pt-0.5">
+          <ul className="flex items-center justify-between gap-1 bg-black/15 p-1 rounded-full border border-white/10">
             {visibleMenus.map((menu) => {
               const isActive = pathname === menu.href;
 
@@ -229,7 +229,7 @@ export default function Navbar() {
                 <li key={menu.href} className="relative flex-1 text-center">
                   <Link
                     href={menu.href}
-                    className={`relative z-10 block py-1.5 px-2 text-[11px] transition-colors duration-200 rounded-full truncate ${
+                    className={`relative z-10 block py-1 px-2 text-[11px] transition-colors duration-200 rounded-full truncate ${
                       isActive
                         ? "text-black font-bold bg-white shadow-xs"
                         : "font-bold text-white hover:bg-white/15"

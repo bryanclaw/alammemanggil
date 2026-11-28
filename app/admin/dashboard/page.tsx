@@ -2216,37 +2216,38 @@ export default function AdminDashboardPage() {
     }).format(num);
 
   return (
-    <div className="min-h-screen bg-[#F7F5F2] text-neutral-900">
+    <div className="min-h-screen bg-[#F7F5F2] text-neutral-900 overflow-x-hidden">
       {toast && (
-        <div className="fixed bottom-5 right-5 z-50 bg-neutral-900 text-white px-4 py-3 rounded-2xl shadow-xl text-xs font-bold flex items-center gap-2 border border-amber-400/40">
-          <Sparkles className="w-4 h-4 text-amber-400" />
-          <span>{toast}</span>
+        <div className="fixed bottom-4 right-4 left-4 sm:left-auto sm:bottom-5 sm:right-5 z-50 bg-neutral-900 text-white px-4 py-3 rounded-2xl shadow-xl text-xs font-bold flex items-center gap-2 border border-amber-400/40">
+          <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+          <span className="line-clamp-2">{toast}</span>
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-3xl border border-amber-900/10 p-6 mb-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-amber-100 text-[#6F4E37] mb-2">
-              <Store className="w-3.5 h-3.5" /> Merchant Seller Center
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        {/* Top Bar Toko ala Shopee di HP, utuh di Desktop */}
+        <div className="bg-white rounded-2xl sm:rounded-3xl border border-amber-900/10 p-3.5 sm:p-6 mb-3.5 sm:mb-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+          <div className="min-w-0">
+            <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-amber-100 text-[#6F4E37] mb-1 sm:mb-2">
+              <Store className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> Seller Center
             </span>
-            <h1 className="text-2xl font-black text-neutral-900">
-              Dashboard Toko {storeName}
+            <h1 className="text-base sm:text-2xl font-black text-neutral-900 truncate">
+              {storeName}
             </h1>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 sm:pb-0 sm:flex-wrap no-scrollbar">
             <button
               type="button"
               onClick={() => setActiveMenu("catalog")}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-black transition cursor-pointer ${
+              className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2.5 rounded-full text-[11px] sm:text-xs font-black transition cursor-pointer shrink-0 ${
                 activeMenu === "catalog"
                   ? "bg-[#6F4E37] text-white shadow"
                   : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
               }`}
             >
-              <Store className="w-4 h-4" />
-              <span>Etalase Paket</span>
+              <Store className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span>Etalase</span>
             </button>
 
             <button
@@ -2255,13 +2256,13 @@ export default function AdminDashboardPage() {
                 setActiveMenu("orders");
                 loadCustomerReviews();
               }}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-black transition cursor-pointer ${
+              className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2.5 rounded-full text-[11px] sm:text-xs font-black transition cursor-pointer shrink-0 ${
                 activeMenu === "orders"
                   ? "bg-[#6F4E37] text-white shadow"
                   : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
               }`}
             >
-              <ClipboardList className="w-4 h-4" />
+              <ClipboardList className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span>Pesanan ({waitingOrders.length})</span>
             </button>
 
@@ -2271,13 +2272,13 @@ export default function AdminDashboardPage() {
                 setActiveMenu("discounts");
                 fetchDiscounts();
               }}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-black transition cursor-pointer ${
+              className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2.5 rounded-full text-[11px] sm:text-xs font-black transition cursor-pointer shrink-0 ${
                 activeMenu === "discounts"
                   ? "bg-[#6F4E37] text-white shadow"
                   : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
               }`}
             >
-              <Tag className="w-4 h-4" />
+              <Tag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span>Diskon ({discounts.length})</span>
             </button>
 
@@ -2287,16 +2288,16 @@ export default function AdminDashboardPage() {
                 setActiveMenu("notifications");
                 loadStoredAdminNotifs();
               }}
-              className={`relative inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-black transition cursor-pointer ${
+              className={`relative inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2.5 rounded-full text-[11px] sm:text-xs font-black transition cursor-pointer shrink-0 ${
                 activeMenu === "notifications"
                   ? "bg-[#6F4E37] text-white shadow"
                   : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
               }`}
             >
-              <Bell className="w-4 h-4" />
-              <span>Notifikasi</span>
+              <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span>Notif</span>
               {unreadAdminNotifCount > 0 && (
-                <span className="px-1.5 py-0.5 text-[10px] rounded-full bg-emerald-500 text-black font-black">
+                <span className="px-1.5 py-0.5 text-[10px] rounded-full bg-emerald-500 text-black font-black leading-none">
                   {unreadAdminNotifCount}
                 </span>
               )}
@@ -2305,53 +2306,77 @@ export default function AdminDashboardPage() {
             <button
               type="button"
               onClick={() => setActiveMenu("settings")}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-black transition cursor-pointer ${
+              className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2.5 rounded-full text-[11px] sm:text-xs font-black transition cursor-pointer shrink-0 ${
                 activeMenu === "settings"
                   ? "bg-[#6F4E37] text-white shadow"
                   : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
               }`}
             >
-              <Settings className="w-4 h-4" />
-              <span>Settings Toko</span>
+              <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span>Pengaturan</span>
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white rounded-2xl border border-neutral-200/80 p-4 shadow-sm">
-            <p className="text-[11px] font-bold text-amber-700">
-              Menunggu Konfirmasi
+        {/* Stat Ringkas ala Shopee di HP (3 kolom sejajar), utuh di Desktop */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-3.5 sm:mb-6">
+          <button
+            type="button"
+            onClick={() => {
+              setActiveMenu("orders");
+              setOrderTab("WAITING_CONFIRMATION");
+            }}
+            className="bg-white rounded-xl sm:rounded-2xl border border-neutral-200/80 p-2.5 sm:p-4 shadow-2xs sm:shadow-sm text-left cursor-pointer"
+          >
+            <p className="text-[10px] sm:text-[11px] font-bold text-amber-700 truncate">
+              Perlu Cek
             </p>
-            <p className="text-2xl font-black text-amber-600 mt-1">
+            <p className="text-lg sm:text-2xl font-black text-amber-600 mt-0.5 sm:mt-1">
               {waitingOrders.length}
             </p>
-          </div>
-          <div className="bg-white rounded-2xl border border-neutral-200/80 p-4 shadow-sm">
-            <p className="text-[11px] font-bold text-emerald-700">Selesai</p>
-            <p className="text-2xl font-black text-emerald-600 mt-1">
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveMenu("orders");
+              setOrderTab("COMPLETED");
+            }}
+            className="bg-white rounded-xl sm:rounded-2xl border border-neutral-200/80 p-2.5 sm:p-4 shadow-2xs sm:shadow-sm text-left cursor-pointer"
+          >
+            <p className="text-[10px] sm:text-[11px] font-bold text-emerald-700 truncate">
+              Selesai
+            </p>
+            <p className="text-lg sm:text-2xl font-black text-emerald-600 mt-0.5 sm:mt-1">
               {completedOrders.length}
             </p>
-          </div>
-          <div className="bg-white rounded-2xl border border-neutral-200/80 p-4 shadow-sm">
-            <p className="text-[11px] font-bold text-rose-700">
-              Ditolak / Dibatalkan
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveMenu("orders");
+              setOrderTab("CANCELLED");
+            }}
+            className="bg-white rounded-xl sm:rounded-2xl border border-neutral-200/80 p-2.5 sm:p-4 shadow-2xs sm:shadow-sm text-left cursor-pointer"
+          >
+            <p className="text-[10px] sm:text-[11px] font-bold text-rose-700 truncate">
+              Ditolak/Batal
             </p>
-            <p className="text-2xl font-black text-rose-600 mt-1">
+            <p className="text-lg sm:text-2xl font-black text-rose-600 mt-0.5 sm:mt-1">
               {cancelledOrders.length}
             </p>
-          </div>
+          </button>
         </div>
 
         {activeMenu === "catalog" && (
-          <div className="space-y-5">
-            <div className="bg-white rounded-2xl border border-neutral-200/80 p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
-              <div className="flex flex-wrap items-center gap-2">
+          <div className="space-y-3 sm:space-y-5">
+            <div className="bg-white rounded-2xl border border-neutral-200/80 p-2.5 sm:p-4 flex flex-col md:flex-row md:items-center justify-between gap-2.5 sm:gap-4 shadow-2xs sm:shadow-sm">
+              <div className="grid grid-cols-3 sm:flex sm:flex-wrap items-center gap-1.5 sm:gap-2">
                 {(["TRIP", "OUTBOUND", "RENTAL"] as const).map((cat) => (
                   <button
                     key={cat}
                     type="button"
                     onClick={() => setFilterCategory(cat)}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-black transition cursor-pointer ${
+                    className={`px-2.5 sm:px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs font-black transition cursor-pointer truncate ${
                       filterCategory === cat
                         ? "bg-neutral-900 text-white"
                         : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
@@ -2369,7 +2394,7 @@ export default function AdminDashboardPage() {
               <button
                 type="button"
                 onClick={openAddModal}
-                className="inline-flex items-center justify-center gap-2 bg-[#6F4E37] hover:bg-[#5a3e2b] text-white text-xs font-black px-5 py-2.5 rounded-full shadow transition cursor-pointer"
+                className="inline-flex items-center justify-center gap-1.5 bg-[#6F4E37] hover:bg-[#5a3e2b] text-white text-xs font-black px-4 sm:px-5 py-2 sm:py-2.5 rounded-full shadow transition cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>Tambah Produk</span>
@@ -2381,13 +2406,13 @@ export default function AdminDashboardPage() {
                 <Loader2 className="w-8 h-8 animate-spin text-[#6F4E37]" />
               </div>
             ) : filteredProducts.length === 0 ? (
-              <div className="bg-white rounded-3xl border border-neutral-200/80 p-12 text-center">
-                <p className="text-sm font-bold text-neutral-700">
+              <div className="bg-white rounded-2xl sm:rounded-3xl border border-neutral-200/80 p-10 sm:p-12 text-center">
+                <p className="text-xs sm:text-sm font-bold text-neutral-700">
                   Belum ada produk pada filter ini.
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-6">
                 {filteredProducts.map((prod) => {
                   const pCat = String(prod.category || "").toUpperCase();
                   const isRentalPackage =
@@ -2396,8 +2421,8 @@ export default function AdminDashboardPage() {
                   const unitPriceSuffix =
                     pCat === "RENTAL"
                       ? isRentalPackage
-                        ? "/ paket / malam"
-                        : "/ item / malam"
+                        ? "/ mlm"
+                        : "/ mlm"
                       : pCat === "OUTBOUND"
                       ? "/ hari"
                       : "/ pax";
@@ -2409,10 +2434,10 @@ export default function AdminDashboardPage() {
                   return (
                     <div
                       key={prod.id}
-                      className="bg-white rounded-2xl border border-neutral-200/80 overflow-hidden shadow-sm flex flex-col justify-between"
+                      className="bg-white rounded-xl sm:rounded-2xl border border-neutral-200/80 sm:border-neutral-200/95 overflow-hidden shadow-2xs sm:shadow-[0_12px_32px_-8px_rgba(15,23,42,0.16)] sm:hover:shadow-[0_18px_40px_-10px_rgba(15,23,42,0.22)] sm:transition-shadow flex flex-col justify-between"
                     >
                       <div>
-                        <div className="relative h-44 bg-neutral-100">
+                        <div className="relative h-28 sm:h-44 bg-neutral-100">
                           {prod.image ? (
                             <img
                               src={prod.image}
@@ -2420,85 +2445,135 @@ export default function AdminDashboardPage() {
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-xs text-neutral-400">
+                            <div className="w-full h-full flex items-center justify-center text-[10px] sm:text-xs text-neutral-400">
                               Tanpa Gambar
                             </div>
                           )}
-                          <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5">
-                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-black/75 text-white">
+                          <div className="absolute top-1.5 left-1.5 sm:top-2.5 sm:left-2.5 flex flex-wrap gap-1 sm:gap-1.5">
+                            <span className="px-1.5 sm:px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black bg-black/75 text-white">
                               {pCat}
                             </span>
-                            {prod.subCategory && prod.subCategory !== "ALL" && (
-                              <span
-                                className={`px-2.5 py-0.5 rounded-full text-[10px] font-black ${
-                                  isRentalPackage
-                                    ? "bg-[#6F4E37] text-white"
-                                    : "bg-amber-400 text-neutral-900"
-                                }`}
-                              >
-                                {isRentalPackage
-                                  ? "PAKET RENTAL"
-                                  : prod.subCategory.replace(/_/g, " ")}
-                              </span>
-                            )}
                             {pCat === "TRIP" && meta.isRecommended && (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500 text-white">
+                              <span className="inline-flex items-center gap-0.5 px-1.5 sm:px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black bg-emerald-500 text-white">
                                 <Star className="w-2.5 h-2.5 fill-white" />
-                                Rekomendasi
+                                <span className="hidden sm:inline">
+                                  Rekomendasi
+                                </span>
                               </span>
                             )}
                           </div>
                         </div>
 
-                        <div className="p-4 space-y-1.5">
-                          <h3 className="text-sm font-black text-neutral-900 line-clamp-1">
+                        <div className="p-2.5 sm:p-4 space-y-1 sm:space-y-2">
+                          <h3 className="text-xs sm:text-sm font-black text-neutral-900 line-clamp-1">
                             {prod.title}
                           </h3>
-                          <p className="text-sm font-extrabold text-[#6F4E37]">
+                          <p className="text-xs sm:text-sm font-extrabold text-[#6F4E37]">
                             {formatRupiah(prod.price)}{" "}
-                            <span className="text-[11px] font-normal text-neutral-500">
+                            <span className="text-[10px] sm:text-[11px] font-normal text-neutral-500">
                               {unitPriceSuffix}
                             </span>
                           </p>
-                          <p className="text-[11px] text-neutral-500 line-clamp-2">
-                            {prod.description}
-                          </p>
 
-                          {isRentalPackage && pkgList.length > 0 && (
-                            <div className="pt-1.5 flex flex-wrap gap-1">
-                              {pkgList.map((pk, idx) => (
-                                <span
-                                  key={idx}
-                                  className="px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200/80 text-[10px] font-bold text-[#6F4E37]"
-                                >
-                                  {pk.quantity}x {pk.name}
-                                </span>
-                              ))}
-                            </div>
+                          {pCat === "TRIP" ? (
+                            <>
+                              <p className="hidden sm:block text-[11px] text-neutral-500 sm:line-clamp-1">
+                                {prod.description}
+                              </p>
+                              <div className="hidden sm:grid sm:grid-cols-2 gap-x-2 gap-y-1 pt-1.5 border-t border-neutral-100 text-[11px] text-neutral-700">
+                                <div className="truncate">
+                                  <span className="text-neutral-400 font-semibold">
+                                    Daerah:{" "}
+                                  </span>
+                                  <span className="font-bold">
+                                    {meta.location || "-"}
+                                  </span>
+                                </div>
+                                <div className="truncate">
+                                  <span className="text-neutral-400 font-semibold">
+                                    MDPL:{" "}
+                                  </span>
+                                  <span className="font-bold">
+                                    {meta.elevation || "-"}
+                                  </span>
+                                </div>
+                                <div className="truncate">
+                                  <span className="text-neutral-400 font-semibold">
+                                    Grade:{" "}
+                                  </span>
+                                  <span className="font-bold">
+                                    {meta.grade || "-"}
+                                  </span>
+                                </div>
+                                <div className="truncate">
+                                  <span className="text-neutral-400 font-semibold">
+                                    Jalur:{" "}
+                                  </span>
+                                  <span className="font-bold">
+                                    {meta.route || "-"}
+                                  </span>
+                                </div>
+                                <div className="truncate">
+                                  <span className="text-neutral-400 font-semibold">
+                                    Durasi:{" "}
+                                  </span>
+                                  <span className="font-bold">
+                                    {meta.duration || "-"}
+                                  </span>
+                                </div>
+                                <div className="truncate">
+                                  <span className="text-neutral-400 font-semibold">
+                                    Kuota:{" "}
+                                  </span>
+                                  <span className="font-bold">
+                                    {meta.quota || `Stok ${prod.stock}`}
+                                  </span>
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <p className="hidden sm:block text-[11px] text-neutral-500 line-clamp-2">
+                                {prod.description}
+                              </p>
+
+                              {isRentalPackage && pkgList.length > 0 && (
+                                <div className="hidden sm:flex pt-1.5 flex-wrap gap-1">
+                                  {pkgList.map((pk, idx) => (
+                                    <span
+                                      key={idx}
+                                      className="px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200/80 text-[10px] font-bold text-[#6F4E37]"
+                                    >
+                                      {pk.quantity}x {pk.name}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </>
                           )}
 
-                          <div className="pt-1 flex flex-wrap gap-1.5 text-[10px] font-bold text-neutral-600">
-                            <span className="bg-neutral-100 px-2 py-0.5 rounded">
+                          <div className="pt-0.5 sm:pt-1 flex flex-wrap gap-1 sm:gap-1.5 text-[9px] sm:text-[10px] font-bold text-neutral-600">
+                            <span className="bg-neutral-100 px-1.5 sm:px-2 py-0.5 rounded">
                               Stok: {prod.stock}
                             </span>
                             {pCat === "RENTAL" ? (
                               <>
-                                <span className="bg-rose-50 text-rose-700 px-2 py-0.5 rounded">
+                                <span className="hidden sm:inline bg-rose-50 text-rose-700 px-2 py-0.5 rounded">
                                   {(meta.unavailableDates || []).length} Tgl Tutup
                                 </span>
-                                <span className="bg-amber-50 text-[#6F4E37] px-2 py-0.5 rounded">
+                                <span className="hidden sm:inline bg-amber-50 text-[#6F4E37] px-2 py-0.5 rounded">
                                   {(meta.bookedDates || []).length} Tgl Terbooking
                                 </span>
                               </>
                             ) : (
                               <>
-                                <span className="bg-neutral-100 px-2 py-0.5 rounded">
+                                <span className="hidden sm:inline bg-neutral-100 px-2 py-0.5 rounded">
                                   {(meta.timeTrips || []).length} Jadwal
                                 </span>
-                                <span className="bg-neutral-100 px-2 py-0.5 rounded">
+                                <span className="hidden sm:inline bg-neutral-100 px-2 py-0.5 rounded">
                                   {(meta.itineraryItems || []).length} Itinerary
                                 </span>
-                                <span className="bg-neutral-100 px-2 py-0.5 rounded">
+                                <span className="hidden sm:inline bg-neutral-100 px-2 py-0.5 rounded">
                                   {(meta.rulesItems || []).length} Rules
                                 </span>
                               </>
@@ -2507,20 +2582,21 @@ export default function AdminDashboardPage() {
                         </div>
                       </div>
 
-                      <div className="px-4 py-3 border-t border-neutral-100 flex items-center justify-end gap-2 bg-neutral-50/70">
+                      <div className="px-2.5 py-2 sm:px-4 sm:py-3 border-t border-neutral-100 flex items-center justify-end gap-1.5 sm:gap-2 bg-neutral-50/70">
                         <button
                           type="button"
                           onClick={() => openEditModal(prod)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-100 hover:bg-amber-200 text-[#6F4E37] cursor-pointer"
+                          className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold bg-amber-100 hover:bg-amber-200 text-[#6F4E37] cursor-pointer"
                         >
-                          <Pencil className="w-3.5 h-3.5" /> Edit
+                          <Pencil className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> Edit
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDeleteProduct(prod.id)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold bg-rose-100 hover:bg-rose-200 text-rose-700 cursor-pointer"
+                          className="inline-flex items-center justify-center gap-1 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold bg-rose-100 hover:bg-rose-200 text-rose-700 cursor-pointer"
                         >
-                          <Trash2 className="w-3.5 h-3.5" /> Hapus
+                          <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                          <span className="hidden sm:inline">Hapus</span>
                         </button>
                       </div>
                     </div>
@@ -2532,27 +2608,32 @@ export default function AdminDashboardPage() {
         )}
 
         {activeMenu === "orders" && (
-          <div className="bg-white rounded-3xl border border-neutral-200/80 shadow-sm overflow-hidden">
-            <div className="grid grid-cols-2 sm:grid-cols-4 border-b border-neutral-200 bg-neutral-50/70">
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-neutral-200/80 shadow-sm overflow-hidden">
+            {/* Sub-tab Pesanan ala Shopee di HP */}
+            <div className="grid grid-cols-4 border-b border-neutral-200 bg-neutral-50/70">
               {[
                 {
                   key: "WAITING_CONFIRMATION" as const,
-                  label: "Konfirmasi",
+                  label: "Cek TF",
+                  fullLabel: "Konfirmasi",
                   count: waitingOrders.length,
                 },
                 {
                   key: "COMPLETED" as const,
                   label: "Selesai",
+                  fullLabel: "Selesai",
                   count: completedOrders.length,
                 },
                 {
                   key: "CANCELLED" as const,
-                  label: "Ditolak / Batal",
+                  label: "Batal",
+                  fullLabel: "Ditolak / Batal",
                   count: cancelledOrders.length,
                 },
                 {
                   key: "REVIEWS" as const,
                   label: "Ulasan",
+                  fullLabel: "Ulasan",
                   count: customerReviews.length,
                 },
               ].map((t) => {
@@ -2562,16 +2643,19 @@ export default function AdminDashboardPage() {
                     key={t.key}
                     type="button"
                     onClick={() => setOrderTab(t.key)}
-                    className={`relative py-3.5 px-3 text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                    className={`relative py-2.5 sm:py-3.5 px-1.5 sm:px-3 text-[11px] sm:text-xs font-black transition flex items-center justify-center gap-1 cursor-pointer ${
                       isSelected
                         ? "text-[#6F4E37] bg-white"
                         : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100/70"
                     }`}
                   >
-                    <span>{t.label}</span>
+                    <span className="sm:hidden truncate">{t.label}</span>
+                    <span className="hidden sm:inline truncate">
+                      {t.fullLabel}
+                    </span>
                     {t.count > 0 && (
                       <span
-                        className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${
+                        className={`px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black leading-none ${
                           isSelected
                             ? "bg-[#6F4E37] text-white"
                             : "bg-neutral-200 text-neutral-800"
@@ -2588,21 +2672,21 @@ export default function AdminDashboardPage() {
               })}
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className="p-2.5 sm:p-6 space-y-2.5 sm:space-y-4 bg-neutral-100/60 sm:bg-white">
               {orderTab === "REVIEWS" ? (
                 customerReviews.length === 0 ? (
-                  <div className="p-10 text-center space-y-2">
+                  <div className="p-10 text-center space-y-2 bg-white rounded-2xl sm:rounded-none">
                     <Star className="w-10 h-10 text-neutral-300 mx-auto" />
                     <p className="text-sm font-black text-neutral-800">
                       Belum ada ulasan dari customer
                     </p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                     {customerReviews.map((rev) => (
                       <div
                         key={rev.id}
-                        className="rounded-2xl border border-neutral-200 bg-neutral-50/70 p-4 space-y-2.5 text-xs"
+                        className="rounded-xl sm:rounded-2xl border border-neutral-200 bg-white sm:bg-neutral-50/70 p-3.5 sm:p-4 space-y-2 sm:space-y-2.5 text-xs"
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div>
@@ -2613,21 +2697,21 @@ export default function AdminDashboardPage() {
                               {[1, 2, 3, 4, 5].map((s) => (
                                 <Star
                                   key={s}
-                                  className={`w-4 h-4 ${
+                                  className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
                                     s <= rev.rating
                                       ? "text-amber-400 fill-amber-400"
                                       : "text-neutral-300"
                                   }`}
                                 />
                               ))}
-                              <span className="ml-1 text-xs font-black text-neutral-800">
+                              <span className="ml-1 text-[11px] sm:text-xs font-black text-neutral-800">
                                 ({rev.rating}/5)
                               </span>
                             </div>
                           </div>
 
                           <div className="flex items-center gap-2">
-                            <span className="text-[11px] font-medium text-neutral-500">
+                            <span className="text-[10px] sm:text-[11px] font-medium text-neutral-500">
                               {new Date(rev.createdAt).toLocaleDateString(
                                 "id-ID",
                                 {
@@ -2653,7 +2737,7 @@ export default function AdminDashboardPage() {
                             {rev.tags.map((t) => (
                               <span
                                 key={t}
-                                className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white border border-amber-200 text-[#6F4E37]"
+                                className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 sm:bg-white border border-amber-200 text-[#6F4E37]"
                               >
                                 {t}
                               </span>
@@ -2661,7 +2745,7 @@ export default function AdminDashboardPage() {
                           </div>
                         )}
 
-                        <p className="text-neutral-800 font-medium leading-relaxed bg-white p-3 rounded-xl border border-neutral-200/80">
+                        <p className="text-neutral-800 font-medium leading-relaxed bg-neutral-50 sm:bg-white p-2.5 sm:p-3 rounded-xl border border-neutral-200/80">
                           “{rev.comment}”
                         </p>
                       </div>
@@ -2673,8 +2757,8 @@ export default function AdminDashboardPage() {
                   <Loader2 className="w-8 h-8 animate-spin text-[#6F4E37]" />
                 </div>
               ) : displayedOrders.length === 0 ? (
-                <div className="p-10 text-center">
-                  <p className="text-sm font-bold text-neutral-700">
+                <div className="p-10 text-center bg-white rounded-2xl sm:rounded-none">
+                  <p className="text-xs sm:text-sm font-bold text-neutral-700">
                     Tidak ada pesanan pada tab ini.
                   </p>
                 </div>
@@ -2697,74 +2781,82 @@ export default function AdminDashboardPage() {
                   return (
                     <div
                       key={order.id}
-                      className={`rounded-2xl border p-5 shadow-2xs space-y-4 ${
+                      className={`rounded-xl sm:rounded-2xl border p-3 sm:p-5 shadow-2xs space-y-2.5 sm:space-y-4 ${
                         overdue
                           ? "bg-rose-50/70 border-rose-300"
                           : "bg-white border-neutral-200/90"
                       }`}
                     >
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-neutral-100 pb-3.5">
-                        <div className="space-y-1">
-                          <div className="flex flex-wrap items-center gap-2">
+                      {/* Top Header ala Shopee di HP: Order ID + Customer di kiri, Badge Status di kanan */}
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5 sm:gap-3 border-b border-neutral-100 pb-2.5 sm:pb-3.5">
+                        <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                          <div className="flex items-center justify-between md:justify-start gap-2">
                             <span className="text-xs font-black text-neutral-900">
-                              Order #{order.id.slice(-6).toUpperCase()}
+                              #{order.id.slice(-6).toUpperCase()}
                             </span>
-                            {isWaiting && (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800">
-                                <Clock className="w-3 h-3" /> Menunggu
-                                Konfirmasi
-                              </span>
-                            )}
-                            {isCompleted && (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                                <CheckCircle2 className="w-3 h-3" /> Selesai
-                              </span>
-                            )}
-                            {isCancelled && (
-                              <span
-                                className={`inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-0.5 rounded-full ${
-                                  cancelledByCust
-                                    ? "bg-neutral-200 text-neutral-800"
-                                    : "bg-rose-100 text-rose-800"
-                                }`}
-                              >
-                                <Ban className="w-3 h-3" />{" "}
-                                {cancelledByCust
-                                  ? "Dibatalkan Pelanggan"
-                                  : "Ditolak Admin"}
-                              </span>
-                            )}
-                            {overdue && (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-0.5 rounded-full bg-rose-600 text-white animate-pulse">
-                                <AlertTriangle className="w-3 h-3" /> Terlambat
-                                Kembali ({returnDate})
-                              </span>
-                            )}
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {isWaiting && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                                  <Clock className="w-3 h-3" /> Menunggu TF
+                                </span>
+                              )}
+                              {isCompleted && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                                  <CheckCircle2 className="w-3 h-3" /> Selesai
+                                </span>
+                              )}
+                              {isCancelled && (
+                                <span
+                                  className={`inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full ${
+                                    cancelledByCust
+                                      ? "bg-neutral-200 text-neutral-800"
+                                      : "bg-rose-100 text-rose-800"
+                                  }`}
+                                >
+                                  <Ban className="w-3 h-3" />{" "}
+                                  {cancelledByCust
+                                    ? "Batal Customer"
+                                    : "Ditolak"}
+                                </span>
+                              )}
+                              {overdue && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-600 text-white">
+                                  <AlertTriangle className="w-3 h-3" /> Telat
+                                  ({returnDate})
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <p className="text-xs text-neutral-600">
-                            Pelanggan:{" "}
-                            <strong>
+
+                          <p className="text-[11px] sm:text-xs text-neutral-700 truncate">
+                            <strong className="text-neutral-900">
                               {order.user.name || order.user.email}
                             </strong>{" "}
-                            ({order.user.phone || "No HP kosong"})
+                            <span className="text-neutral-500">
+                              • {order.user.phone || "No HP kosong"}
+                            </span>
                           </p>
-                          <p className="text-[11px] text-neutral-500">
-                            Pengirim TF:{" "}
-                            <strong>{order.senderName || "-"}</strong> via{" "}
-                            <strong>{order.bankName || "-"}</strong>
+                          <p className="text-[10px] sm:text-[11px] text-neutral-500 truncate">
+                            TF:{" "}
+                            <strong className="text-neutral-700">
+                              {order.senderName || "-"}
+                            </strong>{" "}
+                            ({order.bankName || "-"})
                           </p>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-2">
+                        {/* Deretan Aksi: ringkas & padat di HP, penuh di Desktop */}
+                        <div className="flex items-center justify-end flex-wrap gap-1.5 sm:gap-2 pt-1 md:pt-0">
                           {order.paymentProof && (
                             <button
                               type="button"
                               onClick={() =>
                                 setPreviewProof(order.paymentProof!)
                               }
-                              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold bg-neutral-100 hover:bg-neutral-200 text-neutral-800 cursor-pointer"
+                              className="inline-flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-bold bg-neutral-100 hover:bg-neutral-200 text-neutral-800 cursor-pointer"
                             >
-                              <Eye className="w-3.5 h-3.5" /> Lihat Bukti TF
+                              <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                              <span>Bukti TF</span>
                             </button>
                           )}
 
@@ -2773,14 +2865,17 @@ export default function AdminDashboardPage() {
                               type="button"
                               disabled={remindingOrderId === order.id}
                               onClick={() => handleSendReturnReminder(order)}
-                              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-black bg-rose-600 hover:bg-rose-700 text-white shadow cursor-pointer disabled:opacity-60"
+                              className="inline-flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-black bg-rose-600 hover:bg-rose-700 text-white shadow-2xs cursor-pointer disabled:opacity-60"
                             >
                               {remindingOrderId === order.id ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                <Loader2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 animate-spin" />
                               ) : (
-                                <Send className="w-3.5 h-3.5" />
+                                <Send className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                               )}
-                              <span>Pemberitahuan Pengembalian</span>
+                              <span className="sm:hidden">Ingatkan</span>
+                              <span className="hidden sm:inline">
+                                Pemberitahuan Pengembalian
+                              </span>
                             </button>
                           )}
 
@@ -2789,14 +2884,15 @@ export default function AdminDashboardPage() {
                               href={customerWaUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-black shadow transition ${
+                              className={`inline-flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-black shadow-2xs transition ${
                                 overdue
                                   ? "bg-amber-400 hover:bg-amber-500 text-black"
                                   : "bg-emerald-500 hover:bg-emerald-600 text-black"
                               }`}
                             >
-                              <MessageCircle className="w-3.5 h-3.5 text-black" />
-                              <span>
+                              <MessageCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-black" />
+                              <span className="sm:hidden">WA</span>
+                              <span className="hidden sm:inline">
                                 {overdue
                                   ? "Hubungi WA (Terlambat)"
                                   : "Hubungi Pelanggan (WA)"}
@@ -2812,10 +2908,13 @@ export default function AdminDashboardPage() {
                                 onClick={() =>
                                   handleUpdateOrderStatus(order.id, "COMPLETED")
                                 }
-                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white shadow cursor-pointer"
+                                className="inline-flex items-center gap-1 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs cursor-pointer"
                               >
-                                <CheckCircle2 className="w-3.5 h-3.5" />{" "}
-                                Konfirmasi & Selesai
+                                <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                                <span className="sm:hidden">ACC</span>
+                                <span className="hidden sm:inline">
+                                  Konfirmasi & Selesai
+                                </span>
                               </button>
 
                               <button
@@ -2828,9 +2927,10 @@ export default function AdminDashboardPage() {
                                     "Ditolak admin: bukti transfer belum sesuai."
                                   )
                                 }
-                                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-black bg-rose-600 hover:bg-rose-700 text-white shadow cursor-pointer"
+                                className="inline-flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-black bg-rose-600 hover:bg-rose-700 text-white shadow-2xs cursor-pointer"
                               >
-                                <Ban className="w-3.5 h-3.5" /> Tolak
+                                <Ban className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                                <span>Tolak</span>
                               </button>
                             </>
                           )}
@@ -2842,16 +2942,20 @@ export default function AdminDashboardPage() {
                               onClick={() =>
                                 handleDeleteOrderHistory(order.id)
                               }
-                              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-black bg-neutral-900 hover:bg-rose-700 text-white shadow cursor-pointer"
+                              className="inline-flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-black bg-neutral-900 hover:bg-rose-700 text-white shadow-2xs cursor-pointer"
                             >
-                              <Trash2 className="w-3.5 h-3.5" /> Hapus Riwayat &
-                              Buka Tanggal
+                              <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                              <span className="sm:hidden">Hapus</span>
+                              <span className="hidden sm:inline">
+                                Hapus Riwayat & Buka Tanggal
+                              </span>
                             </button>
                           )}
                         </div>
                       </div>
 
-                      <div className="space-y-2.5 text-xs">
+                      {/* Item Ringkas ala Shopee di HP */}
+                      <div className="space-y-1.5 sm:space-y-2.5 text-xs">
                         {order.items.map((it) => {
                           const unitLabel = getAdminUnitLabel(
                             it.product.category
@@ -2864,44 +2968,47 @@ export default function AdminDashboardPage() {
                           return (
                             <div
                               key={it.id}
-                              className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 bg-neutral-50/90 p-3 rounded-xl border border-neutral-200/80"
+                              className="flex items-start justify-between gap-2 bg-neutral-50/90 p-2 sm:p-3 rounded-lg sm:rounded-xl border border-neutral-200/80"
                             >
                               <div className="min-w-0 flex-1">
-                                <p className="font-bold text-neutral-900 leading-snug">
+                                <p className="text-xs font-bold text-neutral-900 line-clamp-1 sm:line-clamp-none leading-snug">
                                   {it.product.title}{" "}
-                                  <span className="text-neutral-600 font-semibold">
-                                    ({it.quantity} {unitLabel})
+                                  <span className="text-[11px] text-neutral-600 font-semibold">
+                                    x{it.quantity} {unitLabel}
                                   </span>
                                 </p>
                                 {itemSched && (
-                                  <div className="mt-1.5 flex items-start gap-1.5 text-[11px] font-bold text-[#6F4E37] leading-snug">
-                                    <Calendar className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                                    <span className="break-words">
-                                      Jadwal: {itemSched}
+                                  <div className="mt-0.5 sm:mt-1.5 flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-[#6F4E37] leading-snug">
+                                    <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+                                    <span className="truncate sm:whitespace-normal sm:break-words">
+                                      {itemSched}
                                     </span>
                                   </div>
                                 )}
                               </div>
-                              <span className="font-bold text-neutral-900 shrink-0 sm:pt-0.5">
+                              <span className="text-xs font-bold text-neutral-900 shrink-0">
                                 {formatRupiah(itemSubtotal)}
                               </span>
                             </div>
                           );
                         })}
-                        <div className="flex justify-between items-center pt-2 border-t border-neutral-100 font-black text-sm">
-                          <span>Total Pembayaran</span>
-                          <span className="text-[#6F4E37]">
+
+                        <div className="flex justify-between items-center pt-1.5 sm:pt-2 border-t border-neutral-100 font-black text-xs sm:text-sm">
+                          <span className="text-neutral-600 sm:text-neutral-900">
+                            Total Bayar
+                          </span>
+                          <span className="text-sm sm:text-base text-[#6F4E37]">
                             {formatRupiah(order.totalAmount)}
                           </span>
                         </div>
                       </div>
 
                       {noteLines.length > 0 && (
-                        <div className="bg-amber-50/80 border border-amber-200 rounded-xl p-3.5 text-xs text-neutral-800 space-y-1.5">
+                        <div className="bg-amber-50/80 border border-amber-200 rounded-lg sm:rounded-xl px-2.5 py-2 sm:p-3.5 text-[10px] sm:text-xs text-neutral-800 space-y-0.5 sm:space-y-1.5">
                           {noteLines.map((line, idx) => (
                             <p
                               key={idx}
-                              className="leading-relaxed break-words"
+                              className="leading-snug sm:leading-relaxed break-words line-clamp-2 sm:line-clamp-none"
                             >
                               {line}
                             </p>
@@ -2917,20 +3024,20 @@ export default function AdminDashboardPage() {
         )}
 
         {activeMenu === "discounts" && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
             <form
               onSubmit={handleCreateDiscount}
-              className="lg:col-span-5 bg-white rounded-3xl border border-neutral-200/80 p-6 shadow-sm space-y-4 h-fit"
+              className="lg:col-span-5 bg-white rounded-2xl sm:rounded-3xl border border-neutral-200/80 p-4 sm:p-6 shadow-sm space-y-3 sm:space-y-4 h-fit"
             >
-              <div className="flex items-center gap-2 border-b border-neutral-100 pb-3">
+              <div className="flex items-center gap-2 border-b border-neutral-100 pb-2.5 sm:pb-3">
                 <Tag className="w-4 h-4 text-[#6F4E37]" />
-                <h2 className="text-sm font-black text-neutral-900 uppercase tracking-wider">
+                <h2 className="text-xs sm:text-sm font-black text-neutral-900 uppercase tracking-wider">
                   Buat Kode Diskon Baru
                 </h2>
               </div>
 
               <div>
-                <label className="block text-xs font-bold mb-1">
+                <label className="block text-[11px] sm:text-xs font-bold mb-1">
                   Kode Promo / Voucher *
                 </label>
                 <input
@@ -2941,13 +3048,13 @@ export default function AdminDashboardPage() {
                     setNewDiscountCode(e.target.value.toUpperCase())
                   }
                   placeholder="Contoh: ALAM10 / RENTAL20K"
-                  className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-xs font-black uppercase text-neutral-900"
+                  className="w-full border border-neutral-300 rounded-xl px-3.5 py-2 text-xs font-black uppercase text-neutral-900"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
                 <div>
-                  <label className="block text-xs font-bold mb-1">
+                  <label className="block text-[11px] sm:text-xs font-bold mb-1">
                     Jenis Potongan *
                   </label>
                   <select
@@ -2957,7 +3064,7 @@ export default function AdminDashboardPage() {
                         e.target.value as "PERCENTAGE" | "FIXED"
                       )
                     }
-                    className="w-full border border-neutral-300 rounded-xl px-3 py-2.5 text-xs font-bold text-neutral-900 bg-white"
+                    className="w-full border border-neutral-300 rounded-xl px-3 py-2 text-xs font-bold text-neutral-900 bg-white"
                   >
                     <option value="PERCENTAGE">Persentase (%)</option>
                     <option value="FIXED">Nominal (Rp)</option>
@@ -2965,10 +3072,10 @@ export default function AdminDashboardPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold mb-1">
+                  <label className="block text-[11px] sm:text-xs font-bold mb-1">
                     {newDiscountType === "PERCENTAGE"
-                      ? "Besar Diskon (%) *"
-                      : "Potongan Harga (Rp) *"}
+                      ? "Diskon (%) *"
+                      : "Potongan (Rp) *"}
                   </label>
                   <input
                     type="number"
@@ -2980,35 +3087,35 @@ export default function AdminDashboardPage() {
                     placeholder={
                       newDiscountType === "PERCENTAGE" ? "10" : "25000"
                     }
-                    className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-neutral-900"
+                    className="w-full border border-neutral-300 rounded-xl px-3.5 py-2 text-xs font-bold text-neutral-900"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
                 <div>
-                  <label className="block text-xs font-bold mb-1">
-                    Minimal Transaksi (Rp)
+                  <label className="block text-[11px] sm:text-xs font-bold mb-1">
+                    Min. Belanja (Rp)
                   </label>
                   <input
                     type="number"
                     min={0}
                     value={newMinPurchase}
                     onChange={(e) => setNewMinPurchase(e.target.value)}
-                    placeholder="0 (Tanpa minimal)"
-                    className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-neutral-900"
+                    placeholder="0"
+                    className="w-full border border-neutral-300 rounded-xl px-3.5 py-2 text-xs font-bold text-neutral-900"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold mb-1">
-                    Berlaku Sampai (Opsional)
+                  <label className="block text-[11px] sm:text-xs font-bold mb-1">
+                    Kadaluarsa
                   </label>
                   <input
                     type="date"
                     value={newExpiresAt}
                     onChange={(e) => setNewExpiresAt(e.target.value)}
-                    className="w-full border border-neutral-300 rounded-xl px-3 py-2.5 text-xs font-bold text-neutral-900"
+                    className="w-full border border-neutral-300 rounded-xl px-3 py-2 text-xs font-bold text-neutral-900"
                   />
                 </div>
               </div>
@@ -3016,15 +3123,15 @@ export default function AdminDashboardPage() {
               <button
                 type="submit"
                 disabled={creatingDiscount}
-                className="w-full bg-[#6F4E37] hover:bg-[#5a3e2b] text-white font-black py-3 rounded-full text-xs shadow cursor-pointer disabled:opacity-60"
+                className="w-full bg-[#6F4E37] hover:bg-[#5a3e2b] text-white font-black py-2.5 sm:py-3 rounded-full text-xs shadow cursor-pointer disabled:opacity-60"
               >
                 {creatingDiscount ? "Menyimpan..." : "Simpan Kode Diskon"}
               </button>
             </form>
 
-            <div className="lg:col-span-7 bg-white rounded-3xl border border-neutral-200/80 p-6 shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
-                <h2 className="text-sm font-black text-neutral-900 uppercase tracking-wider">
+            <div className="lg:col-span-7 bg-white rounded-2xl sm:rounded-3xl border border-neutral-200/80 p-4 sm:p-6 shadow-sm space-y-3 sm:space-y-4">
+              <div className="flex items-center justify-between border-b border-neutral-100 pb-2.5 sm:pb-3">
+                <h2 className="text-xs sm:text-sm font-black text-neutral-900 uppercase tracking-wider">
                   Daftar Kode Diskon ({discounts.length})
                 </h2>
               </div>
@@ -3034,39 +3141,36 @@ export default function AdminDashboardPage() {
                   <Loader2 className="w-7 h-7 animate-spin text-[#6F4E37]" />
                 </div>
               ) : discounts.length === 0 ? (
-                <div className="py-12 text-center space-y-2">
+                <div className="py-10 text-center space-y-2">
                   <Tag className="w-10 h-10 text-neutral-300 mx-auto" />
                   <p className="text-xs font-black text-neutral-800">
                     Belum ada kode diskon
                   </p>
-                  <p className="text-xs text-neutral-500">
-                    Buat kode diskon di sebelah kiri agar customer bisa menggunakannya saat checkout.
-                  </p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2.5 sm:space-y-3">
                   {discounts.map((disc) => (
                     <div
                       key={disc.id}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl border border-neutral-200 bg-neutral-50/70"
+                      className="flex items-center justify-between gap-2.5 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-neutral-200 bg-neutral-50/70"
                     >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="px-3 py-1 rounded-full bg-amber-100 text-[#6F4E37] text-xs font-black tracking-wide">
+                      <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                          <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-[#6F4E37] text-[11px] sm:text-xs font-black tracking-wide">
                             {disc.code}
                           </span>
                           <span className="text-xs font-black text-neutral-900">
                             {disc.discountType === "PERCENTAGE"
-                              ? `Potongan ${disc.discountValue}%`
-                              : `Potongan ${formatRupiah(disc.discountValue)}`}
+                              ? `Diskon ${disc.discountValue}%`
+                              : `Diskon ${formatRupiah(disc.discountValue)}`}
                           </span>
                         </div>
-                        <p className="text-[11px] font-semibold text-neutral-600">
-                          Min. Belanja:{" "}
+                        <p className="text-[10px] sm:text-[11px] font-semibold text-neutral-600 truncate">
+                          Min:{" "}
                           {disc.minPurchase > 0
                             ? formatRupiah(disc.minPurchase)
-                            : "Tanpa minimal"}{" "}
-                          • Kadaluarsa:{" "}
+                            : "Bebas"}{" "}
+                          • Exp:{" "}
                           {disc.expiresAt
                             ? new Date(disc.expiresAt).toLocaleDateString(
                                 "id-ID"
@@ -3079,10 +3183,10 @@ export default function AdminDashboardPage() {
                         type="button"
                         disabled={deletingDiscountId === disc.id}
                         onClick={() => handleDeleteDiscount(disc.id)}
-                        className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-black bg-rose-100 hover:bg-rose-200 text-rose-700 cursor-pointer shrink-0"
+                        className="inline-flex items-center justify-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-black bg-rose-100 hover:bg-rose-200 text-rose-700 cursor-pointer shrink-0"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
-                        <span>Hapus</span>
+                        <span className="hidden sm:inline">Hapus</span>
                       </button>
                     </div>
                   ))}
@@ -3093,24 +3197,24 @@ export default function AdminDashboardPage() {
         )}
 
         {activeMenu === "notifications" && (
-          <div className="bg-white rounded-3xl border border-neutral-200/80 p-6 shadow-sm space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 pb-3">
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-neutral-200/80 p-3.5 sm:p-6 shadow-sm space-y-3 sm:space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 pb-2.5 sm:pb-3">
               <div className="flex items-center gap-2">
                 <Bell className="w-4 h-4 text-[#6F4E37]" />
-                <h2 className="text-sm font-black text-neutral-900 uppercase tracking-wider">
-                  Notifikasi Masuk Toko ({adminNotifications.length})
+                <h2 className="text-xs sm:text-sm font-black text-neutral-900 uppercase tracking-wider">
+                  Notifikasi ({adminNotifications.length})
                 </h2>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 {unreadAdminNotifCount > 0 && (
                   <button
                     type="button"
                     onClick={markAllAdminNotifsRead}
-                    className="inline-flex items-center gap-1.5 text-xs font-black text-[#6F4E37] hover:underline cursor-pointer"
+                    className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-black text-[#6F4E37] hover:underline cursor-pointer"
                   >
-                    <CheckCheck className="w-4 h-4" />
-                    <span>Tandai semua dibaca</span>
+                    <CheckCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span>Baca semua</span>
                   </button>
                 )}
 
@@ -3118,41 +3222,38 @@ export default function AdminDashboardPage() {
                   <button
                     type="button"
                     onClick={handleClearAllAdminNotifs}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-black bg-rose-100 hover:bg-rose-200 text-rose-700 cursor-pointer"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-black bg-rose-100 hover:bg-rose-200 text-rose-700 cursor-pointer"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>Hapus Semua</span>
+                    <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                    <span>Hapus</span>
                   </button>
                 )}
               </div>
             </div>
 
             {adminNotifications.length === 0 ? (
-              <div className="py-12 text-center space-y-2">
+              <div className="py-10 text-center space-y-2">
                 <Bell className="w-10 h-10 text-neutral-300 mx-auto" />
                 <p className="text-xs font-black text-neutral-800">
                   Belum ada notifikasi masuk
                 </p>
-                <p className="text-xs text-neutral-500">
-                  Pesanan baru, upload ulang bukti transfer, pembatalan, dan ulasan pelanggan akan muncul di sini.
-                </p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 {adminNotifications.map((notif) => (
                   <div
                     key={notif.id}
                     onClick={() => markAdminNotifRead(notif.id)}
-                    className={`p-4 rounded-2xl border text-xs cursor-pointer transition ${
+                    className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl border text-xs cursor-pointer transition ${
                       notif.isRead
                         ? "bg-white border-neutral-200 text-neutral-800"
                         : "bg-amber-50/90 border-amber-300 text-neutral-950"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap min-w-0">
                         <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                          className={`px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black uppercase ${
                             notif.type === "NEW_REVIEW"
                               ? "bg-amber-200 text-[#6F4E37]"
                               : notif.type === "CANCELLED_BY_CUSTOMER"
@@ -3165,22 +3266,17 @@ export default function AdminDashboardPage() {
                           {notif.type === "NEW_REVIEW"
                             ? "Ulasan"
                             : notif.type === "CANCELLED_BY_CUSTOMER"
-                            ? "Pembatalan"
+                            ? "Batal"
                             : notif.type === "REUPLOAD_PROOF"
-                            ? "Upload Ulang TF"
-                            : "Pesanan Masuk"}
+                            ? "Reupload TF"
+                            : "Order"}
                         </span>
-                        <p className="font-black text-neutral-950">
+                        <p className="text-xs font-black text-neutral-950 truncate">
                           {notif.title}
                         </p>
-                        {!notif.isRead && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-[#6F4E37] text-white">
-                            Baru
-                          </span>
-                        )}
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-[11px] font-medium text-neutral-500">
+                      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                        <span className="text-[10px] sm:text-[11px] font-medium text-neutral-500">
                           {new Date(notif.createdAt).toLocaleDateString("id-ID")}
                         </span>
                         <button
@@ -3190,13 +3286,13 @@ export default function AdminDashboardPage() {
                             handleDeleteAdminNotif(notif.id);
                           }}
                           title="Hapus notifikasi"
-                          className="p-1.5 rounded-full bg-rose-100 hover:bg-rose-200 text-rose-700 cursor-pointer"
+                          className="p-1 rounded-full bg-rose-100 hover:bg-rose-200 text-rose-700 cursor-pointer"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                         </button>
                       </div>
                     </div>
-                    <p className="mt-1.5 font-medium leading-relaxed text-neutral-700">
+                    <p className="mt-1 text-[11px] sm:text-xs font-medium leading-snug sm:leading-relaxed text-neutral-700">
                       {notif.message}
                     </p>
                   </div>
@@ -3209,25 +3305,27 @@ export default function AdminDashboardPage() {
         {activeMenu === "settings" && (
           <form
             onSubmit={handleSaveSettings}
-            className="bg-white rounded-3xl border border-neutral-200/80 p-6 shadow-sm max-w-2xl space-y-4"
+            className="bg-white rounded-2xl sm:rounded-3xl border border-neutral-200/80 p-4 sm:p-6 shadow-sm max-w-2xl space-y-3 sm:space-y-4"
           >
-            <h2 className="text-sm font-black text-neutral-900 uppercase tracking-wider">
+            <h2 className="text-xs sm:text-sm font-black text-neutral-900 uppercase tracking-wider">
               Pengaturan Rekening & Kontak Toko
             </h2>
 
             <div>
-              <label className="block text-xs font-bold mb-1">Nama Toko</label>
+              <label className="block text-[11px] sm:text-xs font-bold mb-1">
+                Nama Toko
+              </label>
               <input
                 type="text"
                 required
                 value={storeName}
                 onChange={(e) => setStoreName(e.target.value)}
-                className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-xs"
+                className="w-full border border-neutral-300 rounded-xl px-3.5 py-2 text-xs"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold mb-1">
+              <label className="block text-[11px] sm:text-xs font-bold mb-1">
                 Nomor WhatsApp Admin (Format 628xxx)
               </label>
               <input
@@ -3235,13 +3333,13 @@ export default function AdminDashboardPage() {
                 required
                 value={waAdminNumber}
                 onChange={(e) => setWaAdminNumber(e.target.value)}
-                className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-xs"
+                className="w-full border border-neutral-300 rounded-xl px-3.5 py-2 text-xs"
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
-                <label className="block text-xs font-bold mb-1">
+                <label className="block text-[11px] sm:text-xs font-bold mb-1">
                   Nama Bank Tujuan
                 </label>
                 <input
@@ -3249,12 +3347,12 @@ export default function AdminDashboardPage() {
                   required
                   value={bankName}
                   onChange={(e) => setBankName(e.target.value)}
-                  className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-xs"
+                  className="w-full border border-neutral-300 rounded-xl px-3.5 py-2 text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold mb-1">
+                <label className="block text-[11px] sm:text-xs font-bold mb-1">
                   Nomor Rekening
                 </label>
                 <input
@@ -3262,13 +3360,13 @@ export default function AdminDashboardPage() {
                   required
                   value={accountNumber}
                   onChange={(e) => setAccountNumber(e.target.value)}
-                  className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-xs"
+                  className="w-full border border-neutral-300 rounded-xl px-3.5 py-2 text-xs"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold mb-1">
+              <label className="block text-[11px] sm:text-xs font-bold mb-1">
                 Nama Pemilik Rekening
               </label>
               <input
@@ -3276,14 +3374,14 @@ export default function AdminDashboardPage() {
                 required
                 value={accountHolder}
                 onChange={(e) => setAccountHolder(e.target.value)}
-                className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-xs"
+                className="w-full border border-neutral-300 rounded-xl px-3.5 py-2 text-xs"
               />
             </div>
 
             <button
               type="submit"
               disabled={savingSettings}
-              className="bg-[#6F4E37] hover:bg-[#5a3e2b] text-white text-xs font-black px-6 py-3 rounded-full shadow cursor-pointer"
+              className="bg-[#6F4E37] hover:bg-[#5a3e2b] text-white text-xs font-black px-6 py-2.5 sm:py-3 rounded-full shadow cursor-pointer"
             >
               {savingSettings ? "Menyimpan..." : "Simpan Pengaturan Toko"}
             </button>
@@ -3292,16 +3390,14 @@ export default function AdminDashboardPage() {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/55 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/55 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
           <form
             onSubmit={handleSaveProduct}
-            className="bg-white rounded-3xl max-w-4xl w-full p-6 shadow-2xl border border-neutral-200 space-y-5 max-h-[92vh] overflow-y-auto"
+            className="bg-white rounded-2xl sm:rounded-3xl max-w-4xl w-full p-4 sm:p-6 shadow-2xl border border-neutral-200 space-y-4 sm:space-y-5 max-h-[92vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between border-b border-neutral-100 pb-3 sticky top-0 bg-white z-10">
-              <h3 className="text-base font-black text-neutral-900">
-                {editingId
-                  ? "Edit Produk"
-                  : "Tambah Produk Baru"}
+              <h3 className="text-sm sm:text-base font-black text-neutral-900">
+                {editingId ? "Edit Produk" : "Tambah Produk Baru"}
               </h3>
               <button
                 type="button"
@@ -3312,7 +3408,7 @@ export default function AdminDashboardPage() {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label className="block text-xs font-bold mb-1">
                   {category === "RENTAL"
@@ -3357,7 +3453,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               <div>
                 <label className="block text-xs font-bold mb-1">
                   {category === "RENTAL"
@@ -4378,8 +4474,8 @@ export default function AdminDashboardPage() {
       )}
 
       {activeCropImage && (
-        <div className="fixed inset-0 z-[70] bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl border border-neutral-200 space-y-4 max-h-[92vh] overflow-y-auto">
+        <div className="fixed inset-0 z-[70] bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-2xl sm:rounded-3xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl border border-neutral-200 space-y-4 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
               <div>
                 <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-100 text-[#6F4E37]">
@@ -4388,7 +4484,7 @@ export default function AdminDashboardPage() {
                     ? "Cover Utama"
                     : `Dokumentasi (${cropQueue.length} tersisa)`}
                 </span>
-                <h3 className="text-base font-black text-neutral-900 mt-1">
+                <h3 className="text-sm sm:text-base font-black text-neutral-900 mt-1">
                   Sesuaikan Framing Foto dengan Layout Tampilan
                 </h3>
               </div>
@@ -4427,7 +4523,7 @@ export default function AdminDashboardPage() {
               </p>
             </div>
 
-            <div className="bg-neutral-950 rounded-2xl p-4 flex items-center justify-center min-h-[260px] overflow-hidden">
+            <div className="bg-neutral-950 rounded-2xl p-4 flex items-center justify-center min-h-[240px] sm:min-h-[260px] overflow-hidden">
               <div
                 style={{
                   aspectRatio:

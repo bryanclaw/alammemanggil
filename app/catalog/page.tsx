@@ -518,9 +518,9 @@ function RentalGearSimpleCard({
 
   return (
     <div className="group relative h-full">
-      <div className="relative h-full rounded-[26px] bg-white/95 backdrop-blur-xl border border-black/[0.07] shadow-[0_12px_28px_-12px_rgba(24,24,27,0.1)] hover:shadow-[0_22px_46px_-14px_rgba(111,78,55,0.2)] transition-all duration-200 ease-out flex flex-col justify-between overflow-hidden">
+      <div className="relative h-full rounded-[18px] sm:rounded-[22px] bg-white/95 backdrop-blur-xl border border-black/[0.07] shadow-[0_8px_22px_-12px_rgba(24,24,27,0.1)] hover:shadow-[0_16px_32px_-12px_rgba(111,78,55,0.18)] transition-all duration-200 ease-out flex flex-col justify-between overflow-hidden">
         <div>
-          <div className="relative aspect-[4/3] m-2.5 rounded-[20px] overflow-hidden bg-gradient-to-b from-neutral-50 to-neutral-100/90 border border-black/[0.05] flex items-center justify-center p-4">
+          <div className="relative aspect-[4/3] m-1.5 sm:m-2 rounded-[14px] sm:rounded-[16px] overflow-hidden bg-gradient-to-b from-neutral-50 to-neutral-100/90 border border-black/[0.05] flex items-center justify-center p-2 sm:p-2.5">
             {item.image ? (
               <img
                 src={item.image}
@@ -529,13 +529,13 @@ function RentalGearSimpleCard({
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-neutral-400">
-                <Package className="w-10 h-10" />
+                <Package className="w-7 h-7 sm:w-8 sm:h-8" />
               </div>
             )}
 
-            <div className="absolute top-3 left-3 z-20">
+            <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 z-20">
               <span
-                className={`px-3 py-1 rounded-full backdrop-blur-md text-[10px] font-bold tracking-wide ${
+                className={`px-2 py-0.5 rounded-full backdrop-blur-md text-[9px] font-bold tracking-wide ${
                   isPaket
                     ? "bg-[#6F4E37] text-white"
                     : "bg-black/75 text-white"
@@ -545,88 +545,91 @@ function RentalGearSimpleCard({
               </span>
             </div>
 
-            <div className="absolute top-3 right-3 z-20">
+            <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-20">
               <span
-                className={`px-2.5 py-1 rounded-full backdrop-blur-md text-[10px] font-extrabold ${
+                className={`px-1.5 py-0.5 rounded-full backdrop-blur-md text-[9px] font-extrabold ${
                   isOutOfStock
                     ? "bg-rose-600/90 text-white"
                     : "bg-white/95 text-neutral-900 border border-black/[0.06]"
                 }`}
               >
-                {isOutOfStock
-                  ? "Stok Habis"
-                  : `Stok ${item.stock} ${isPaket ? "Paket" : "Item"}`}
+                {isOutOfStock ? "Habis" : `Stok ${item.stock}`}
               </span>
             </div>
 
-            <div className="absolute bottom-3 left-3 z-20">
-              <div className="px-3.5 py-1.5 rounded-2xl bg-neutral-950/85 backdrop-blur-md text-white shadow-xs">
-                <span className="text-sm font-black tracking-tight">
+            <div className="absolute bottom-1.5 left-1.5 sm:bottom-2 sm:left-2 z-20">
+              <div className="px-2 py-1 rounded-xl bg-neutral-950/85 backdrop-blur-md text-white shadow-2xs leading-none">
+                <span className="text-[11px] sm:text-xs font-black tracking-tight">
                   {formatRupiah(item.price)}
                 </span>
-                <span className="text-[10px] text-neutral-300 font-semibold ml-1">
-                  {isPaket ? "/ paket / malam" : "/ malam"}
+                <span className="text-[9px] text-neutral-300 font-semibold ml-0.5">
+                  /mlm
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="px-5 pt-1.5 pb-3 space-y-2">
-            <h3 className="text-base font-black text-neutral-900 tracking-tight leading-snug">
+          <div className="px-2.5 sm:px-3 pt-1 pb-2 space-y-1">
+            <h3 className="text-xs sm:text-[13px] font-black text-neutral-900 tracking-tight leading-snug line-clamp-1">
               {item.title}
             </h3>
-            <p className="text-xs text-neutral-600 leading-relaxed line-clamp-2">
+            <p className="text-[10px] sm:text-[11px] text-neutral-600 leading-snug line-clamp-2">
               {item.description ||
-                "Peralatan outdoor terawat dan siap dipakai untuk kebutuhan pendakian maupun kegiatan alam terbuka."}
+                "Peralatan outdoor terawat dan siap dipakai untuk pendakian maupun kegiatan alam terbuka."}
             </p>
 
             {isPaket && pkgItems.length > 0 && (
-              <div className="rounded-2xl bg-[#FAF8F5] border border-amber-900/10 p-2.5 space-y-1">
-                <p className="text-[10px] font-black uppercase tracking-wider text-[#6F4E37]">
+              <div className="rounded-xl bg-[#FAF8F5] border border-amber-900/10 p-1.5 space-y-0.5">
+                <p className="text-[9px] font-black uppercase tracking-wider text-[#6F4E37]">
                   Isi Paket:
                 </p>
                 <div className="flex flex-wrap gap-1">
-                  {pkgItems.map((pk, idx) => (
+                  {pkgItems.slice(0, 3).map((pk, idx) => (
                     <span
                       key={idx}
-                      className="px-2 py-0.5 rounded-lg bg-white border border-neutral-200/80 text-[10px] font-bold text-neutral-800"
+                      className="px-1.5 py-0.5 rounded bg-white border border-neutral-200/80 text-[9px] font-bold text-neutral-800 truncate max-w-full"
                     >
                       {pk.quantity}x {pk.name}
                     </span>
                   ))}
+                  {pkgItems.length > 3 && (
+                    <span className="px-1.5 py-0.5 rounded bg-amber-100/70 text-[9px] font-bold text-[#6F4E37]">
+                      +{pkgItems.length - 3}
+                    </span>
+                  )}
                 </div>
               </div>
             )}
           </div>
         </div>
 
-        <div className="px-5 pb-5 pt-2">
+        <div className="px-2.5 sm:px-3 pb-2.5 sm:pb-3 pt-1">
           <button
             type="button"
             disabled={isOutOfStock}
             onClick={() => onOpenBooking(item)}
-            className={`w-full py-3 px-4 rounded-2xl text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            className={`w-full py-2 px-2.5 rounded-xl text-[10px] sm:text-[11px] font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
               isOutOfStock
                 ? "bg-neutral-200 text-neutral-500 cursor-not-allowed"
                 : isAdded
-                ? "bg-emerald-600 text-white shadow-md"
-                : "bg-neutral-950 hover:bg-[#6F4E37] text-white shadow-xs active:scale-[0.98]"
+                ? "bg-emerald-600 text-white shadow-sm"
+                : "bg-neutral-950 hover:bg-[#6F4E37] text-white shadow-2xs active:scale-[0.98]"
             }`}
           >
             {isAdded ? (
               <>
-                <Check className="w-4 h-4" />
-                <span>Masuk Keranjang!</span>
+                <Check className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">Masuk Keranjang!</span>
               </>
             ) : (
               <>
-                <ShoppingBag className="w-4 h-4" />
-                <span>
+                <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">
                   {isOutOfStock
                     ? "Stok Habis"
                     : isPaket
-                    ? "Sewa Paket Ini"
-                    : "Sewa Alat Ini"}
+                    ? "Sewa Paket"
+                    : "Sewa Alat"}
                 </span>
               </>
             )}
@@ -1206,9 +1209,9 @@ export default function CatalogPage() {
     : [];
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] text-neutral-900 pb-20">
+    <div className="min-h-screen bg-[#F5F5F7] text-neutral-900 pb-16 overflow-x-hidden">
       {bannerMsg && (
-        <div className="fixed bottom-5 right-5 z-[60] max-w-sm">
+        <div className="fixed bottom-4 right-4 left-4 sm:left-auto z-[60] max-w-sm ml-auto">
           <div
             className={`px-4 py-3 rounded-2xl shadow-xl backdrop-blur-xl border text-xs font-bold flex items-center gap-2.5 ${
               bannerMsg.type === "success"
@@ -1226,13 +1229,13 @@ export default function CatalogPage() {
         </div>
       )}
 
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-6">
-        <div className="rounded-[32px] bg-white/85 backdrop-blur-2xl border border-black/[0.06] p-6 sm:p-10 shadow-[0_18px_45px_-18px_rgba(0,0,0,0.08)]">
-          <div className="space-y-2.5 max-w-2xl">
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-neutral-950">
+      <section className="max-w-7xl mx-auto px-3.5 sm:px-6 pt-5 sm:pt-8 pb-4">
+        <div className="rounded-[22px] sm:rounded-[28px] bg-white/85 backdrop-blur-2xl border border-black/[0.06] p-4 sm:p-7 shadow-[0_14px_36px_-18px_rgba(0,0,0,0.08)]">
+          <div className="space-y-1.5 max-w-2xl">
+            <h1 className="text-xl sm:text-3xl font-black tracking-tight text-neutral-950">
               Sewa Perlengkapan Outdoor
             </h1>
-            <p className="text-sm text-neutral-600 leading-relaxed">
+            <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed">
               Sewa alat satuan maupun paket perlengkapan outdoor siap pakai untuk
               pendakian dan kegiatan alam terbuka.
             </p>
@@ -1240,9 +1243,9 @@ export default function CatalogPage() {
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-8">
-        <div className="rounded-[26px] bg-white/80 backdrop-blur-xl border border-black/[0.06] p-3 shadow-2xs">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+      <section className="max-w-7xl mx-auto px-3.5 sm:px-6 mb-5 sm:mb-6">
+        <div className="rounded-[20px] sm:rounded-[24px] bg-white/80 backdrop-blur-xl border border-black/[0.06] p-2 sm:p-2.5 shadow-2xs">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-0.5 no-scrollbar">
             {RENTAL_CATEGORIES.map((cat) => {
               const IconComp = cat.icon;
               const active = selectedCategory === cat.key;
@@ -1251,14 +1254,15 @@ export default function CatalogPage() {
                   key={cat.key}
                   type="button"
                   onClick={() => setSelectedCategory(cat.key)}
-                  className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
+                  className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-full text-[11px] sm:text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                     active
                       ? "bg-neutral-950 text-white shadow-sm"
                       : "bg-neutral-100/80 text-neutral-700 hover:bg-neutral-200/70"
                   }`}
                 >
-                  <IconComp className="w-3.5 h-3.5" />
-                  <span>{cat.label}</span>
+                  <IconComp className="w-3.5 h-3.5 shrink-0" />
+                  <span className="sm:hidden">{cat.shortLabel}</span>
+                  <span className="hidden sm:inline">{cat.label}</span>
                 </button>
               );
             })}
@@ -1266,25 +1270,25 @@ export default function CatalogPage() {
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 sm:px-6">
+      <section className="max-w-7xl mx-auto px-3.5 sm:px-6">
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((n) => (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            {[1, 2, 3, 4].map((n) => (
               <div
                 key={n}
-                className="h-80 rounded-[26px] bg-white/70 border border-black/[0.05] animate-pulse"
+                className="h-64 rounded-[20px] bg-white/70 border border-black/[0.05] animate-pulse"
               />
             ))}
           </div>
         ) : filteredItems.length === 0 ? (
-          <div className="rounded-[32px] bg-white/80 backdrop-blur-xl border border-black/[0.06] p-12 text-center space-y-2">
-            <Package className="w-10 h-10 text-neutral-400 mx-auto" />
-            <h2 className="text-base font-black text-neutral-900">
+          <div className="rounded-[24px] bg-white/80 backdrop-blur-xl border border-black/[0.06] p-10 text-center space-y-2">
+            <Package className="w-9 h-9 text-neutral-400 mx-auto" />
+            <h2 className="text-sm sm:text-base font-black text-neutral-900">
               Belum ada alat atau paket rental pada kategori ini
             </h2>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {filteredItems.map((item) => (
               <RentalGearSimpleCard
                 key={item.id}
